@@ -1,4 +1,4 @@
-package com.watchline5.mapreport.backend
+package openbuildright.reportmapper.backend
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
