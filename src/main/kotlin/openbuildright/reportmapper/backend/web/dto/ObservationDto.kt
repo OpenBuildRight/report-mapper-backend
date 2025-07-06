@@ -1,5 +1,7 @@
 package openbuildright.reportmapper.backend.web.dto
 
+import openbuildright.reportmapper.backend.db.jpa.entity.Observation
+import openbuildright.reportmapper.backend.model.ObservationModel
 import java.time.Instant
 
 data class GeoLocationDto(
