@@ -1,17 +1,20 @@
 package openbuildright.reportmapper.backend.web.controller
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import openbuildright.reportmapper.backend.model.GeoLocationModel
-import openbuildright.reportmapper.backend.model.ObservationModel
+import openbuildright.reportmapper.backend.service.model.GeoLocationModel
+import openbuildright.reportmapper.backend.service.model.ObservationModel
 import openbuildright.reportmapper.backend.service.ObservationService
-import openbuildright.reportmapper.backend.web.dto.GeoLocationDto
+import openbuildright.reportmapper.backend.service.model.ObservationCreateModel
 import openbuildright.reportmapper.backend.web.dto.ObservationCreateDto
 import openbuildright.reportmapper.backend.web.dto.ObservationDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
 
 @RestController
 @RequestMapping("/observation")
@@ -23,35 +26,43 @@ class ObservationController(
     private val logger = KotlinLogging.logger {}
 
     @PostMapping()
-    fun createObservation(@RequestBody dto: ObservationCreateDto) : ObservationDto {
+    fun createObservation(
+        @RequestBody dto: ObservationCreateDto,
+        @RequestHeader("x-observation-token") observationToken: String
+        ) : ObservationDto {
         logger.info { "Received request to create observation." }
 
-        val observationModel: ObservationModel = ObservationModel(
-            null,
+        val observationModel: ObservationCreateModel = ObservationCreateModel(
             dto.observationTime,
-            dto.createdTime,
-            dto.updatedTime,
             GeoLocationModel(dto.location.latitude, dto.location.longitude),
             dto.imageIds,
             dto.properties
         )
         val observationModelResult = observationService.createObservation(
-            observationModel
+            observationModel,
+            observationToken
         )
-        return ObservationDto(
-            observationModelResult.id!!,
-            observationModelResult.observationTime,
-            observationModelResult.createdTime,
-            observationModelResult.updatedTime,
-            GeoLocationDto(
-                observationModelResult.location.latitude,
-                observationModelResult.location.longitude
+        return ObservationDto.fromObservationModel(observationModelResult)
+    }
+
+    @PutMapping("/{id}")
+    fun updateObservation(
+        id: Long,
+        @RequestBody dto: ObservationCreateDto,
+        @RequestHeader("x-observation-token") observationToken: String,
+        ) : ObservationDto {
+        val observation: ObservationModel = observationService.updateObservation(
+            id,
+            ObservationCreateModel(
+                observationTime = dto.observationTime,
+                location = GeoLocationModel(dto.location.latitude, dto.location.longitude),
+                imageIds = dto.imageIds,
+                properties = dto.properties
             ),
-            observationModelResult.imageIds,
-            observationModelResult.properties
-
+            observationToken,
+            false
         )
-
+        return ObservationDto.fromObservationModel(observation)
     }
 
 }
