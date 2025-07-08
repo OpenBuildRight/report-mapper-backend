@@ -55,7 +55,7 @@ class ObservationService(
             }
         }
         observation.updatedTime = now
-        observation.location = Point(observationCreateModel.location.latitude, observationCreateModel.location.longitude)
+        observation.location = geoLocationModelToPoint(observationCreateModel.location)
         val observationPutResponse: Observation = observationRepository.save(observation)
         return observationPutResponse.toObservationModel()
     }
