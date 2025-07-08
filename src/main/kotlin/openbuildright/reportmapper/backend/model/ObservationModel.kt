@@ -1,5 +1,6 @@
 package openbuildright.reportmapper.backend.model
 
+import org.springframework.data.geo.Point
 import java.time.Instant
 
 data class GeoLocationModel(
@@ -20,9 +21,15 @@ data class ObservationModel(
     val createdTime: Instant,
     val updatedTime: Instant,
     val location: GeoLocationModel,
-    val imageIds: List<Long>,
+    val images: List<ImageModel>,
     val properties: Map<String, String>,
     val enabled: Boolean,
     val observationSignature: String
-) {
-}
+)
+
+data class ImageModel(
+    val id: Long? = null,
+    val key: String,
+    val createdTime: Instant,
+    val location: GeoLocationModel?
+)

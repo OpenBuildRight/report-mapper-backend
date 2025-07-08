@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
 import openbuildright.reportmapper.backend.model.GeoLocationModel
 import openbuildright.reportmapper.backend.model.ObservationModel
 import org.springframework.data.geo.Point
@@ -20,6 +22,9 @@ class Observation(
     var location: Point,
     var enabled: Boolean,
     val observationSignature: String,
+
+    @OneToMany(mappedBy = "observation")
+    @JoinColumn(referencedColumnName = "id")
     val images: List<Image>
     ) {
     fun toObservationModel() : ObservationModel {
@@ -29,7 +34,7 @@ class Observation(
             createdTime = createdTime,
             updatedTime = updatedTime,
             location = pointToGeoLocationModel(location),
-            imageIds = listOf(),
+            images = images.asSequence().map { it.toImageModel() }.toList(),
             observationSignature = observationSignature,
             properties = mapOf(),
             enabled = enabled
@@ -45,13 +50,14 @@ class Observation(
                 createdTime = value.createdTime,
                 updatedTime = value.updatedTime,
                 location = geoLocationModelToPoint(value.location),
-                images = listOf(),
+                images = value.images.asSequence().map { Image.fromImageModel(it) }.toList(),
                 observationSignature = value.observationSignature,
                 enabled = value.enabled
             )
         }
     }
 }
+
 
 fun pointToGeoLocationModel(value: Point) : GeoLocationModel {
     return GeoLocationModel(latitude = value.x, longitude = value.y)
