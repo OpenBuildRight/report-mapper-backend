@@ -1,6 +1,5 @@
-package openbuildright.reportmapper.backend.service.model
+package openbuildright.reportmapper.backend.model
 
-import openbuildright.reportmapper.backend.web.dto.GeoLocationDto
 import java.time.Instant
 
 data class GeoLocationModel(
