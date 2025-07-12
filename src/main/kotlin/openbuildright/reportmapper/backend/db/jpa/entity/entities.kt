@@ -66,18 +66,18 @@ class Observation(
 class Image(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val image_id: Long? = null,
+    val imageId: Long? = null,
 
     @ManyToOne
     @JoinColumn(name = "observation_id", nullable = true)
-    val observation: Observation?,
+    val observation: Observation? = null,
     val objectKey: String,
     val createdTime: Instant,
     val location: Point?
 ) {
     fun toImageModel() : ImageModel {
         return ImageModel(
-            id = image_id,
+            id = imageId,
             key = objectKey,
             createdTime = createdTime,
             location = location?.let { pointToGeoLocationModel(it ) }
@@ -87,7 +87,7 @@ class Image(
     companion object {
         fun fromImageModel(value: ImageModel) : Image{
             return Image(
-                image_id = value.id,
+                imageId = value.id,
                 objectKey = value.key,
                 createdTime = value.createdTime,
                 location = value.location?.let { geoLocationModelToPoint(it) },
