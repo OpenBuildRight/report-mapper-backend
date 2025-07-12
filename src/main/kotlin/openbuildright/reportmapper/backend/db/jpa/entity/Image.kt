@@ -14,19 +14,19 @@ import java.time.Instant
 class Image(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    val image_id: Long? = null,
 
     @ManyToOne
     @JoinColumn(name = "observation_id", nullable = true)
     val observation: Observation?,
-    val key: String,
+    val objectKey: String,
     val createdTime: Instant,
     val location: Point?
 ) {
     fun toImageModel() : ImageModel {
         return ImageModel(
-            id = id,
-            key = key,
+            id = image_id,
+            key = objectKey,
             createdTime = createdTime,
             location = location?.let { pointToGeoLocationModel(it ) }
         )
@@ -35,8 +35,8 @@ class Image(
     companion object {
         fun fromImageModel(value: ImageModel) : Image{
             return Image(
-                id = value.id,
-                key = value.key,
+                image_id = value.id,
+                objectKey = value.key,
                 createdTime = value.createdTime,
                 location = value.location?.let { geoLocationModelToPoint(it) },
                 observation = null

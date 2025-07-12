@@ -4,7 +4,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
 import openbuildright.reportmapper.backend.model.GeoLocationModel
 import openbuildright.reportmapper.backend.model.ObservationModel
@@ -15,7 +14,7 @@ import java.time.Instant
 class Observation(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    val observation_id: Long? = null,
     var observationTime: Instant,
     val createdTime: Instant,
     var updatedTime: Instant,
@@ -24,12 +23,11 @@ class Observation(
     val observationSignature: String,
 
     @OneToMany(mappedBy = "observation")
-    @JoinColumn(referencedColumnName = "id")
     val images: List<Image>
     ) {
     fun toObservationModel() : ObservationModel {
         return ObservationModel(
-            id = id,
+            id = observation_id,
             observationTime = observationTime,
             createdTime = createdTime,
             updatedTime = updatedTime,
@@ -45,7 +43,7 @@ class Observation(
     companion object {
         fun fromObservationModel(value: ObservationModel) : Observation {
             return Observation(
-                id = value.id,
+                observation_id = value.id,
                 observationTime = value.observationTime,
                 createdTime = value.createdTime,
                 updatedTime = value.updatedTime,
