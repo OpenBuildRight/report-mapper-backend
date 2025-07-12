@@ -8,6 +8,7 @@ import openbuildright.reportmapper.backend.model.ObservationCreateModel
 import openbuildright.reportmapper.backend.web.dto.ObservationCreateDto
 import openbuildright.reportmapper.backend.web.dto.ObservationDto
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -62,6 +63,11 @@ class ObservationController(
             false
         )
         return ObservationDto.fromObservationModel(observation)
+    }
+
+    @GetMapping("/{id}")
+    fun getObservation(id: Long) : ObservationDto {
+        return ObservationDto.fromObservationModel(observationService.getObservation(id))
     }
 
 }

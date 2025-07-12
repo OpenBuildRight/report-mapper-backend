@@ -25,7 +25,9 @@ data class ObservationModel(
     val properties: Map<String, String>,
     val enabled: Boolean,
     val observationSignature: String
-)
+) {
+
+}
 
 data class ImageModel(
     val id: Long? = null,
