@@ -1,12 +1,13 @@
 package openbuildright.reportmapper.backend.service
 
+import geoLocationModelToPoint
+import openbuildright.reportmapper.backend.db.jpa.entity.Image
 import openbuildright.reportmapper.backend.db.jpa.entity.Observation
-import openbuildright.reportmapper.backend.db.jpa.entity.geoLocationModelToPoint
+import openbuildright.reportmapper.backend.db.jpa.repository.ImageRepository
 import openbuildright.reportmapper.backend.db.jpa.repository.ObservationRepository
 import openbuildright.reportmapper.backend.model.ObservationCreateModel
 import openbuildright.reportmapper.backend.model.ObservationModel
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.geo.Point
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -15,15 +16,21 @@ import java.util.Optional
 
 @Service
 class ObservationService(
-    @Autowired
+
+    @param:Autowired
     val observationRepository: ObservationRepository,
 
-    @Autowired
+    @param:Autowired
+    val imageRepository: ImageRepository,
+
+    @param:Autowired
     val cryptoService: CryptoService
 ){
 
     fun createObservation(observationModel: ObservationCreateModel, observationToken: String) : ObservationModel {
         val now: Instant = Instant.now()
+
+        val images: MutableList<Image> = imageRepository.findAllById(observationModel.imageIds).toMutableList()
 
         val observation = Observation(
             observationTime = observationModel.observationTime,
@@ -32,7 +39,7 @@ class ObservationService(
             location = geoLocationModelToPoint(observationModel.location),
             observationSignature = cryptoService.hmac(observationToken),
             enabled = true,
-            images = listOf()
+            images = images
         )
         val returnedObservation = observationRepository.save(observation)
         return returnedObservation.toObservationModel()
@@ -56,6 +63,9 @@ class ObservationService(
         }
         observation.updatedTime = now
         observation.location = geoLocationModelToPoint(observationCreateModel.location)
+        val images: List<Image> = imageRepository.findAllById(observationCreateModel.imageIds).toList()
+        observation.images.clear()
+        observation.images.addAll(images)
         val observationPutResponse: Observation = observationRepository.save(observation)
         return observationPutResponse.toObservationModel()
     }
