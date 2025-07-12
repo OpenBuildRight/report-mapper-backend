@@ -5,11 +5,13 @@ import openbuildright.reportmapper.backend.db.jpa.entity.Image
 import openbuildright.reportmapper.backend.db.jpa.entity.Observation
 import openbuildright.reportmapper.backend.db.jpa.repository.ImageRepository
 import openbuildright.reportmapper.backend.db.jpa.repository.ObservationRepository
+import openbuildright.reportmapper.backend.exception.NotFoundException
 import openbuildright.reportmapper.backend.model.ObservationCreateModel
 import openbuildright.reportmapper.backend.model.ObservationModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 import java.util.Optional
@@ -68,6 +70,14 @@ class ObservationService(
         observation.images.addAll(images)
         val observationPutResponse: Observation = observationRepository.save(observation)
         return observationPutResponse.toObservationModel()
+    }
+
+    fun getObservation(id: Long) : ObservationModel {
+        val observation : Optional<Observation> = observationRepository.findById(id)
+        if (observation.isEmpty) {
+            throw NotFoundException(String.format("Observation %s not found", id))
+        }
+        return observation.get().toObservationModel()
     }
 
 }
