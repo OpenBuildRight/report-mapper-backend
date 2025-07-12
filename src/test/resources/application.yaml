@@ -1,0 +1,18 @@
+hibernate:
+    hbm2ddl:
+        auto: create-drop
+    show_sql: true
+openbuildright:
+    reportmapper:
+        crypto:
+            key: 123abc
+server:
+    port: 8081
+spring:
+    application:
+        name: map-report-backend
+    datasource:
+        driverClassName: org.h2.Driver
+        password: sa
+        url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
+        username: sa

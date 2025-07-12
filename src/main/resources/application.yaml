@@ -1,0 +1,47 @@
+
+spring:
+    application:
+        name: map-report-backend
+hibernate:
+    show_sql: true
+server:
+    port: 8082
+---
+openbuildright:
+    reportmapper:
+        crypto:
+            key: 123abc
+hibernate:
+    hbm2ddl:
+        auto: create-drop
+spring:
+    config:
+        activate:
+            on-profile: local
+    datasource:
+        driverClassName: org.h2.Driver
+        password: sa
+        url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
+        username: sa
+---
+openbuildright:
+    reportmapper:
+        crypto:
+            key: 123abc
+spring:
+    application:
+        name: map-report-backend
+    config:
+        activate:
+            on-profile: local-mysql
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        password: secret
+        url: jdbc:mysql://localhost:3306/mydatabase
+        username: myuser
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+
+
