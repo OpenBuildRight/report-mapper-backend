@@ -11,13 +11,11 @@ import org.springframework.stereotype.Service
 @Service
 @EnableConfigurationProperties(CryptoConfigModel::class)
 class CryptoService(
-/*
     @Autowired
     val config: CryptoConfigModel
-*/
 ) {
     fun hmac(value: String) : String {
-        val hmac: String? = HmacUtils(HmacAlgorithms.HMAC_SHA_256, "abd").hmacHex(value)
+        val hmac: String? = HmacUtils(HmacAlgorithms.HMAC_SHA_256, config.key).hmacHex(value)
         if (hmac == null) {
             return ""
         }
