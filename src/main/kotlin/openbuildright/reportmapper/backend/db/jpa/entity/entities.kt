@@ -13,6 +13,7 @@ import openbuildright.reportmapper.backend.model.ObservationModel
 import org.springframework.data.geo.Point
 import pointToGeoLocationModel
 import java.time.Instant
+import jakarta.persistence.CascadeType
 
 @Entity
 class Observation(
@@ -26,7 +27,7 @@ class Observation(
     var enabled: Boolean,
     val observationSignature: String,
 
-    @OneToMany(mappedBy = "observation")
+    @OneToMany(mappedBy = "observation", cascade = arrayOf(CascadeType.REFRESH ))
     val images: MutableList<Image>
     ) {
     fun toObservationModel() : ObservationModel {
