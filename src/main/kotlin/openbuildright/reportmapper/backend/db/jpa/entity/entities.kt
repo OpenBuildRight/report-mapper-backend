@@ -1,13 +1,17 @@
 package openbuildright.reportmapper.backend.db.jpa.entity
 
+import geoLocationModelToPoint
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
-import openbuildright.reportmapper.backend.model.GeoLocationModel
+import openbuildright.reportmapper.backend.model.ImageModel
 import openbuildright.reportmapper.backend.model.ObservationModel
 import org.springframework.data.geo.Point
+import pointToGeoLocationModel
 import java.time.Instant
 
 @Entity
@@ -23,7 +27,7 @@ class Observation(
     val observationSignature: String,
 
     @OneToMany(mappedBy = "observation")
-    val images: List<Image>
+    val images: MutableList<Image>
     ) {
     fun toObservationModel() : ObservationModel {
         return ObservationModel(
@@ -48,7 +52,7 @@ class Observation(
                 createdTime = value.createdTime,
                 updatedTime = value.updatedTime,
                 location = geoLocationModelToPoint(value.location),
-                images = value.images.asSequence().map { Image.fromImageModel(it) }.toList(),
+                images = value.images.asSequence().map { Image.fromImageModel(it) }.toMutableList(),
                 observationSignature = value.observationSignature,
                 enabled = value.enabled
             )
@@ -57,10 +61,39 @@ class Observation(
 }
 
 
-fun pointToGeoLocationModel(value: Point) : GeoLocationModel {
-    return GeoLocationModel(latitude = value.x, longitude = value.y)
-}
 
-fun geoLocationModelToPoint(value: GeoLocationModel) : Point {
-    return Point(value.latitude,  value.longitude)
+@Entity
+class Image(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val image_id: Long? = null,
+
+    @ManyToOne
+    @JoinColumn(name = "observation_id", nullable = true)
+    val observation: Observation?,
+    val objectKey: String,
+    val createdTime: Instant,
+    val location: Point?
+) {
+    fun toImageModel() : ImageModel {
+        return ImageModel(
+            id = image_id,
+            key = objectKey,
+            createdTime = createdTime,
+            location = location?.let { pointToGeoLocationModel(it ) }
+        )
+    }
+
+    companion object {
+        fun fromImageModel(value: ImageModel) : Image{
+            return Image(
+                image_id = value.id,
+                objectKey = value.key,
+                createdTime = value.createdTime,
+                location = value.location?.let { geoLocationModelToPoint(it) },
+                observation = null
+            )
+        }
+    }
+
 }
