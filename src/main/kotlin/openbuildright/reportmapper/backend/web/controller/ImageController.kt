@@ -16,5 +16,9 @@ class ImageController(
     @PostMapping()
     fun createImage(
         @RequestBody dto: ImageCreateDto
-    ) {}
+    ) {
+        imageService.createImage(
+            location = dto.location?.toGeoLocationModel()
+        )
+    }
 }
