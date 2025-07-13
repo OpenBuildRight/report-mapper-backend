@@ -5,6 +5,7 @@ import openbuildright.reportmapper.backend.model.GeoLocationModel
 import openbuildright.reportmapper.backend.model.ObservationModel
 import openbuildright.reportmapper.backend.service.ObservationService
 import openbuildright.reportmapper.backend.model.ObservationCreateModel
+import openbuildright.reportmapper.backend.web.dto.GeoLocationDto
 import openbuildright.reportmapper.backend.web.dto.ObservationCreateDto
 import openbuildright.reportmapper.backend.web.dto.ObservationDto
 import org.springframework.beans.factory.annotation.Autowired

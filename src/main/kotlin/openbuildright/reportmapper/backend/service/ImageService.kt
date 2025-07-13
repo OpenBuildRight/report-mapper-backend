@@ -14,7 +14,7 @@ import java.util.UUID
 class ImageService (@param:Autowired val imageRepository: ImageRepository){
 
     fun createImage(location: GeoLocationModel?) : ImageModel {
-        val objectKey: String = UUID.randomUUID().toString()
+        val objectKey: String =  Instant.now().epochSecond.toString()  + UUID.randomUUID().toString().slice(IntRange(0, 8))
         // ToDo Save image to bucket.
         val image: Image = imageRepository.save(Image(
             objectKey = objectKey,
