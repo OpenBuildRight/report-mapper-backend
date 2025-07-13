@@ -33,5 +33,5 @@ data class ImageModel(
     val id: Long? = null,
     val key: String,
     val createdTime: Instant,
-    val location: GeoLocationModel?
+    val location: GeoLocationModel?,
 )

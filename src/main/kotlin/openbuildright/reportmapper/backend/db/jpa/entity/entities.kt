@@ -27,7 +27,8 @@ class Observation(
     var enabled: Boolean,
     val observationSignature: String,
 
-    @OneToMany(mappedBy = "observation", cascade = arrayOf(CascadeType.REFRESH ))
+    @OneToMany
+    @JoinColumn("observation_id")
     val images: MutableList<Image>
     ) {
     fun toObservationModel() : ObservationModel {
@@ -68,10 +69,6 @@ class Image(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val imageId: Long? = null,
-
-    @ManyToOne
-    @JoinColumn(name = "observation_id", nullable = true)
-    val observation: Observation? = null,
     val objectKey: String,
     val createdTime: Instant,
     val location: Point?
@@ -92,7 +89,6 @@ class Image(
                 objectKey = value.key,
                 createdTime = value.createdTime,
                 location = value.location?.let { geoLocationModelToPoint(it) },
-                observation = null
             )
         }
     }

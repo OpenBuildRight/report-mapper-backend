@@ -11,7 +11,6 @@ import openbuildright.reportmapper.backend.model.ObservationModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 import java.util.Optional
@@ -32,8 +31,6 @@ class ObservationService(
     fun createObservation(observationModel: ObservationCreateModel, observationToken: String) : ObservationModel {
         val now: Instant = Instant.now()
 
-        val images: MutableList<Image> = imageRepository.findAllById(observationModel.imageIds).toMutableList()
-
         val observation = Observation(
             observationTime = observationModel.observationTime,
             createdTime = now,
@@ -41,7 +38,7 @@ class ObservationService(
             location = geoLocationModelToPoint(observationModel.location),
             observationSignature = cryptoService.hmac(observationToken),
             enabled = true,
-            images = images
+            images = mutableListOf()
         )
         val returnedObservation = observationRepository.save(observation)
         return returnedObservation.toObservationModel()
