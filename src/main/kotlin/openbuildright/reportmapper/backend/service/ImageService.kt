@@ -3,12 +3,15 @@ package openbuildright.reportmapper.backend.service
 import geoLocationModelToPoint
 import openbuildright.reportmapper.backend.db.jpa.entity.Image
 import openbuildright.reportmapper.backend.db.jpa.repository.ImageRepository
+import openbuildright.reportmapper.backend.exception.NotFoundException
 import openbuildright.reportmapper.backend.model.GeoLocationModel
 import openbuildright.reportmapper.backend.model.ImageModel
+import org.aspectj.weaver.ast.Not
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.UUID
+import java.util.Optional
 
 @Service
 class ImageService (@param:Autowired val imageRepository: ImageRepository){
@@ -22,5 +25,13 @@ class ImageService (@param:Autowired val imageRepository: ImageRepository){
             location = location?.let { geoLocationModelToPoint(it) },
         ))
         return image.toImageModel()
+    }
+
+    fun getImage(id: Long) : ImageModel {
+        val imageResponse: Optional<Image> = imageRepository.findById(id)
+        if (imageResponse.isEmpty) {
+            throw NotFoundException("Image ${id} not found.")
+        }
+        return imageResponse.get().toImageModel()
     }
 }
