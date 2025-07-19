@@ -6,6 +6,7 @@ import openbuildright.reportmapper.backend.web.dto.ImageCreateDto
 import openbuildright.reportmapper.backend.web.dto.ImageDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestBody
@@ -23,5 +24,10 @@ class ImageController(
             location = dto.location?.toGeoLocationModel()
         )
         return ImageDto.fromImageModel(image)
+    }
+
+    @GetMapping("/{id}")
+    fun getImage(id: Long) : ImageDto {
+        return ImageDto.fromImageModel(imageService.getImage(id))
     }
 }
