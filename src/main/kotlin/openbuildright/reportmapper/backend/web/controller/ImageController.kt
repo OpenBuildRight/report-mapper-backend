@@ -1,6 +1,6 @@
 package openbuildright.reportmapper.backend.web.controller
 
-import openbuildright.reportmapper.backend.model.ImageModel
+import openbuildright.reportmapper.backend.model.ImageMetadataModel
 import openbuildright.reportmapper.backend.service.ImageService
 import openbuildright.reportmapper.backend.web.dto.ImageCreateDto
 import openbuildright.reportmapper.backend.web.dto.ImageDto
@@ -9,12 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestPart
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.ModelAttribute
 import openbuildright.reportmapper.backend.model.GeoLocationModel
+import openbuildright.reportmapper.backend.web.InvalidImageFile
 
 @RestController
 @RequestMapping("/image")
@@ -32,7 +29,11 @@ class ImageController(
                 longitude = dto.longitude
             )
         }
-        val image: ImageModel = imageService.createImage(
+        if (dto.file.isEmpty) {
+            throw InvalidImageFile("Image is empty.")
+        }
+        val image: ImageMetadataModel = imageService.createImage(
+            data = dto.file.bytes,
             location = location
         )
         return ImageDto.fromImageModel(image)
@@ -40,6 +41,11 @@ class ImageController(
 
     @GetMapping("/{id}")
     fun getImage(id: Long) : ImageDto {
-        return ImageDto.fromImageModel(imageService.getImage(id))
+        return ImageDto.fromImageModel(imageService.getImageMetadata(id))
+    }
+
+    @GetMapping("/{id}/download")
+    fun downloadImage(id: Long) {
+
     }
 }

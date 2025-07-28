@@ -2,12 +2,30 @@
 
 services:
   mysql:
-    container_name: 'guide-mysql'
+    container_name: 'mysql'
     image: 'mysql:latest'
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
-      - 'MYSQL_PASSWORD=secret'
-      - 'MYSQL_ROOT_PASSWORD=verysecret'
-      - 'MYSQL_USER=myuser'
+      - 'MYSQL_DATABASE=report_db'
+      - 'MYSQL_USER=mysql_user'
+      - 'MYSQL_PASSWORD=mysql_secret'
+      - 'MYSQL_ROOT_PASSWORD=mysql_root_secret'
     ports:
       - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+  minio:
+    container_name: minio
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio_root_user
+      MINIO_ROOT_PASSWORD: minio_root_password
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+
+volumes:
+  minio-data: {}
+  mysql-data: {}

@@ -2,8 +2,6 @@
 spring:
     application:
         name: map-report-backend
-hibernate:
-    show_sql: true
 server:
     port: 8080
 ---
@@ -11,6 +9,7 @@ openbuildright:
     reportmapper:
         crypto:
             key: 123abc
+        object-store-type: MEMORY
 hibernate:
     hbm2ddl:
         auto: create-drop
@@ -19,7 +18,7 @@ spring:
         activate:
             on-profile: local
     datasource:
-        driverClassName: org.h2.Driver
+        driver-class-name: org.h2.Driver
         password: sa
         url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
         username: sa
@@ -33,12 +32,12 @@ spring:
         name: map-report-backend
     config:
         activate:
-            on-profile: local-mysql
+            on-profile: local-docker-compose
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
-        password: secret
-        url: jdbc:mysql://localhost:3306/mydatabase
-        username: myuser
+        password: mysql_secret
+        url: jdbc:mysql://localhost:3306/report_db
+        username: mysql_user
     jpa:
         hibernate:
             ddl-auto: update
