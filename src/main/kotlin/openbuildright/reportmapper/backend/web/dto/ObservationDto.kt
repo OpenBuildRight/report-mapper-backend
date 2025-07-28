@@ -1,10 +1,9 @@
 package openbuildright.reportmapper.backend.web.dto
 
 import openbuildright.reportmapper.backend.model.GeoLocationModel
-import openbuildright.reportmapper.backend.model.ImageModel
+import openbuildright.reportmapper.backend.model.ImageMetadataModel
 import openbuildright.reportmapper.backend.model.ObservationModel
 import java.time.Instant
-import kotlin.streams.toList
 
 data class GeoLocationDto(
     val latitude: Double,
@@ -33,8 +32,8 @@ data class ImageDto(
     val createdTime: Instant,
     val location: GeoLocationDto?
 ) {
-    fun toImageModel() : ImageModel {
-        return ImageModel(
+    fun toImageModel() : ImageMetadataModel {
+        return ImageMetadataModel(
             id = id,
             key = key,
             createdTime = createdTime,
@@ -43,7 +42,7 @@ data class ImageDto(
     }
 
     companion object {
-        fun fromImageModel(value: ImageModel) : ImageDto {
+        fun fromImageModel(value: ImageMetadataModel) : ImageDto {
             return ImageDto(
                 id = value.id!!,
                 key = value.key,

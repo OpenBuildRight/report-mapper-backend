@@ -6,14 +6,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
-import openbuildright.reportmapper.backend.model.ImageModel
+import openbuildright.reportmapper.backend.model.ImageMetadataModel
 import openbuildright.reportmapper.backend.model.ObservationModel
 import org.springframework.data.geo.Point
 import pointToGeoLocationModel
 import java.time.Instant
-import jakarta.persistence.CascadeType
 
 @Entity
 class Observation(
@@ -38,7 +36,7 @@ class Observation(
             createdTime = createdTime,
             updatedTime = updatedTime,
             location = pointToGeoLocationModel(location),
-            images = images.asSequence().map { it.toImageModel() }.toList(),
+            images = images.asSequence().map { it.toImageMetadataModel() }.toList(),
             observationSignature = observationSignature,
             properties = mapOf(),
             enabled = enabled
@@ -54,7 +52,7 @@ class Observation(
                 createdTime = value.createdTime,
                 updatedTime = value.updatedTime,
                 location = geoLocationModelToPoint(value.location),
-                images = value.images.asSequence().map { Image.fromImageModel(it) }.toMutableList(),
+                images = value.images.asSequence().map { Image.fromImageMetadataModel(it) }.toMutableList(),
                 observationSignature = value.observationSignature,
                 enabled = value.enabled
             )
@@ -73,8 +71,8 @@ class Image(
     val createdTime: Instant,
     val location: Point?
 ) {
-    fun toImageModel() : ImageModel {
-        return ImageModel(
+    fun toImageMetadataModel() : ImageMetadataModel {
+        return ImageMetadataModel(
             id = imageId,
             key = objectKey,
             createdTime = createdTime,
@@ -83,7 +81,7 @@ class Image(
     }
 
     companion object {
-        fun fromImageModel(value: ImageModel) : Image{
+        fun fromImageMetadataModel(value: ImageMetadataModel) : Image{
             return Image(
                 imageId = value.id,
                 objectKey = value.key,
