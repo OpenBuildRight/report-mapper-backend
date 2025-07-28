@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.ModelAttribute
 import openbuildright.reportmapper.backend.model.GeoLocationModel
 import openbuildright.reportmapper.backend.web.InvalidImageFile
+import org.springframework.http.MediaType
 
 @RestController
 @RequestMapping("/image")
@@ -44,8 +45,8 @@ class ImageController(
         return ImageDto.fromImageModel(imageService.getImageMetadata(id))
     }
 
-    @GetMapping("/{id}/download")
-    fun downloadImage(id: Long) {
-
+    @GetMapping("/{id}/download", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE))
+    fun downloadImage(id: Long) : ByteArray {
+        return imageService.getImage(id).image
     }
 }
