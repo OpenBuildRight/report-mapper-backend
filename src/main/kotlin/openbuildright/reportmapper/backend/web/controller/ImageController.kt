@@ -10,18 +10,30 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestPart
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.ModelAttribute
+import openbuildright.reportmapper.backend.model.GeoLocationModel
 
 @RestController
 @RequestMapping("/image")
 class ImageController(
     @param:Autowired val imageService: ImageService
 ) {
-    @PostMapping()
+    @PostMapping( consumes = arrayOf("multipart/form-data"))
     fun createImage(
-        @RequestBody dto: ImageCreateDto
+        @ModelAttribute dto: ImageCreateDto
     ) : ImageDto {
+        var location: GeoLocationModel? = null;
+        if (dto.latitude != null && dto.longitude != null) {
+            location = GeoLocationModel(
+                latitude = dto.latitude,
+                longitude = dto.longitude
+            )
+        }
         val image: ImageModel = imageService.createImage(
-            location = dto.location?.toGeoLocationModel()
+            location = location
         )
         return ImageDto.fromImageModel(image)
     }
