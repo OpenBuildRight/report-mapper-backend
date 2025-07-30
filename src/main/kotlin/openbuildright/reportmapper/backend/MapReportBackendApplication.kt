@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class MapReportBackendApplication
 
 fun main(args: Array<String>) {
-	runApplication<MapReportBackendApplication>(*args)
+    runApplication<MapReportBackendApplication>(*args)
 }
