@@ -11,9 +11,6 @@ server:
 ---
 openbuildright:
     reportmapper:
-        crypto:
-            key: 123abc
-        object-store-type: MEMORY
 hibernate:
     hbm2ddl:
         auto: create-drop
@@ -21,30 +18,21 @@ spring:
     config:
         activate:
             on-profile: local
-    datasource:
-        driver-class-name: org.h2.Driver
-        password: sa
-        url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
-        username: sa
 ---
 openbuildright:
     reportmapper:
-        crypto:
-            key: 123abc
 spring:
     application:
         name: map-report-backend
     config:
         activate:
             on-profile: local-docker-compose
-    datasource:
-        driver-class-name: com.mysql.cj.jdbc.Driver
-        password: mysql_secret
-        url: jdbc:mysql://localhost:3306/report_db
-        username: mysql_user
-    jpa:
-        hibernate:
-            ddl-auto: update
-        show-sql: true
+    data:
+        mongodb:
+            host: localhost
+            port: 27017
+            username: root
+            password: example
+            database: report_mapper
 
 

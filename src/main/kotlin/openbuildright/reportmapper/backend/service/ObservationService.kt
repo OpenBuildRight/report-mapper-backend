@@ -21,9 +21,6 @@ class ObservationService(
 
     @param:Autowired
     val imageService: ImageService,
-
-    @param:Autowired
-    val cryptoService: CryptoService
 ) {
 
     fun createObservation(observationModel: ObservationCreateModel): ObservationModel {
