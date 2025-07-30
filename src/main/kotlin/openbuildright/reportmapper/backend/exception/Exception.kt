@@ -1,9 +1,7 @@
 package openbuildright.reportmapper.backend.exception
 
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
-import java.lang.RuntimeException
 
 open class ReportMapperException : RuntimeException {
     constructor() : super()
@@ -18,7 +16,7 @@ open class ReportMapperException : RuntimeException {
     )
 }
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason="Item not found.")
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Item not found.")
 open class NotFoundException : ReportMapperException {
     constructor() : super()
     constructor(message: String?) : super(message)

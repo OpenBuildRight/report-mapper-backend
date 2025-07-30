@@ -10,30 +10,45 @@ data class GeoLocationModel(
 data class ObservationCreateModel(
     val observationTime: Instant,
     val location: GeoLocationModel,
-    val imageIds: List<Long>,
-    val properties: Map<String, String>
+    val imageIds: Set<String>,
+    val properties: Map<String, String>,
+    val reporterId: String,
+    val description: String,
+    val title: String
 )
 
 data class ObservationModel(
-    val id: Long?,
+    val id: String,
     val observationTime: Instant,
     val createdTime: Instant,
     val updatedTime: Instant,
     val location: GeoLocationModel,
-    val images: List<ImageMetadataModel>,
     val properties: Map<String, String>,
     val enabled: Boolean,
-    val observationSignature: String
-) {
+    val imageIds: Set<String>,
+    val reporterId: String,
+    val description: String,
+    val title: String
+)
 
-}
+data class ImageMetadataCreateModel(
+    val imageGeneratedTime: Instant?,
+    val location: GeoLocationModel?,
+    val description: String?,
+    val reporterId: String
+)
 
 data class ImageMetadataModel(
-    val id: Long? = null,
+    val id: String,
     val key: String,
     val createdTime: Instant,
+    val updatedTime: Instant,
+    val imageGeneratedTime: Instant?,
     val location: GeoLocationModel?,
+    val description: String?,
+    val reporterId: String
 )
+
 
 data class ImageModel(val image: ByteArray, val metadata: ImageMetadataModel) {
     override fun equals(other: Any?): Boolean {

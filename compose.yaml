@@ -1,18 +1,6 @@
 # Use for local testing only.
 
 services:
-  mysql:
-    container_name: 'mysql'
-    image: 'mysql:latest'
-    environment:
-      - 'MYSQL_DATABASE=report_db'
-      - 'MYSQL_USER=mysql_user'
-      - 'MYSQL_PASSWORD=mysql_secret'
-      - 'MYSQL_ROOT_PASSWORD=mysql_root_secret'
-    ports:
-      - '3306:3306'
-    volumes:
-      - mysql-data:/var/lib/mysql
   minio:
     container_name: minio
     image: minio/minio
@@ -22,10 +10,13 @@ services:
     environment:
       MINIO_ROOT_USER: minio_root_user
       MINIO_ROOT_PASSWORD: minio_root_password
-    volumes:
-      - minio-data:/data
     command: server /data --console-address ":9001"
 
-volumes:
-  minio-data: {}
-  mysql-data: {}
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
