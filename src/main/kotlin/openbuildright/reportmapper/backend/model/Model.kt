@@ -29,7 +29,7 @@ data class ObservationModel(
     val reporterId: String,
     val description: String,
     val title: String
-) {}
+)
 
 data class ImageMetadataCreateModel(
     val imageGeneratedTime: Instant?,
@@ -48,7 +48,6 @@ data class ImageMetadataModel(
     val description: String?,
     val reporterId: String
 )
-
 
 
 data class ImageModel(val image: ByteArray, val metadata: ImageMetadataModel) {

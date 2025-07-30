@@ -14,11 +14,11 @@ class CryptoService(
     @Autowired
     val config: CryptoConfigModel
 ) {
-    fun hmac(value: String) : String {
+    fun hmac(value: String): String {
         val hmac: String? = HmacUtils(HmacAlgorithms.HMAC_SHA_256, config.key).hmacHex(value)
         if (hmac == null) {
             return ""
         }
-        return hmac;
+        return hmac
     }
 }
