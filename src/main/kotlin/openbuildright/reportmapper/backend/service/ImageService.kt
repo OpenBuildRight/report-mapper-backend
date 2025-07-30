@@ -71,6 +71,6 @@ class ImageService(
     }
 
     fun listImagesMetadata(ids: Set<String>): Set<ImageMetadataModel> {
-        return ids.stream().map { getImageMetadata(it) }.toList().toSet()
+        return ids.parallelStream().map { getImageMetadata(it) }.toList().toSet()
     }
 }

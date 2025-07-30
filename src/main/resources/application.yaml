@@ -33,6 +33,6 @@ spring:
             port: 27017
             username: root
             password: example
-            database: report_mapper
+            database: admin
 
 
