@@ -10,8 +10,11 @@ data class GeoLocationModel(
 data class ObservationCreateModel(
     val observationTime: Instant,
     val location: GeoLocationModel,
-    val imageIds: List<Long>,
-    val properties: Map<String, String>
+    val imageIds: Set<String>,
+    val properties: Map<String, String>,
+    val reporterId: String,
+    val description: String,
+    val title: String
 )
 
 data class ObservationModel(

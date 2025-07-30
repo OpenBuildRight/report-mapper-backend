@@ -1,10 +1,9 @@
 package openbuildright.reportmapper.backend.service
 
 import geoLocationModelToPoint
-import openbuildright.reportmapper.backend.db.jpa.entity.Image
-import openbuildright.reportmapper.backend.db.jpa.entity.Observation
-import openbuildright.reportmapper.backend.db.jpa.repository.ImageRepository
-import openbuildright.reportmapper.backend.db.jpa.repository.ObservationRepository
+import openbuildright.reportmapper.backend.db.mongo.ImageMetadataDocumentRepository
+import openbuildright.reportmapper.backend.db.mongo.ObservationDocument
+import openbuildright.reportmapper.backend.db.mongo.ObservationDocumentRepository
 import openbuildright.reportmapper.backend.exception.NotFoundException
 import openbuildright.reportmapper.backend.model.ObservationCreateModel
 import openbuildright.reportmapper.backend.model.ObservationModel
@@ -14,15 +13,16 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 import java.util.Optional
+import java.util.UUID
 
 @Service
 class ObservationService(
 
     @param:Autowired
-    val observationRepository: ObservationRepository,
+    val observationRepository: ObservationDocumentRepository,
 
     @param:Autowired
-    val imageRepository: ImageRepository,
+    val imageService: ImageService,
 
     @param:Autowired
     val cryptoService: CryptoService
@@ -31,46 +31,50 @@ class ObservationService(
     fun createObservation(observationModel: ObservationCreateModel, observationToken: String) : ObservationModel {
         val now: Instant = Instant.now()
 
-        val observation = Observation(
+        // Make Sure Images Exist
+        val images = imageService.listImagesMetadata(observationModel.imageIds.toSet());
+
+        val observationId = UUID.randomUUID().toString()
+
+        val observation = ObservationDocument(
             observationTime = observationModel.observationTime,
             createdTime = now,
             updatedTime = now,
             location = geoLocationModelToPoint(observationModel.location),
-            observationSignature = cryptoService.hmac(observationToken),
-            enabled = true,
-            images = mutableListOf()
+            enabled = false,
+            imageIds = images.stream().map { it.id }.toList().toSet(),
+            id = observationId,
+            reporterId = observationModel.reporterId,
+            properties = observationModel.properties,
+            description = observationModel.description,
+            title = observationModel.title
         )
         val returnedObservation = observationRepository.save(observation)
         return returnedObservation.toObservationModel()
     }
     fun updateObservation(
-        id: Long, observationCreateModel: ObservationCreateModel,
-        observationToken: String,
-        force: Boolean
+        id: String,
+        observationCreateModel: ObservationCreateModel,
         ) : ObservationModel {
-        val observationResponse: Optional<Observation?> = observationRepository.findById(id)
+        val observationResponse: Optional<ObservationDocument?> = observationRepository.findById(id)
         if (observationResponse.isEmpty) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Observation not found.")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Observation ${id} not found.")
         }
-        val observation: Observation = observationResponse.get()
+        val observation: ObservationDocument = observationResponse.get()
         val now: Instant = Instant.now()
-        if (!force) {
-            val requestSignature: String = cryptoService.hmac(observationToken)
-            if (requestSignature != observation.observationSignature) {
-                throw ResponseStatusException(HttpStatus.FORBIDDEN, "Observation signature does not match request signature.")
-            }
-        }
         observation.updatedTime = now
         observation.location = geoLocationModelToPoint(observationCreateModel.location)
-        val images: List<Image> = imageRepository.findAllById(observationCreateModel.imageIds).toList()
-        observation.images.clear()
-        observation.images.addAll(images)
-        val observationPutResponse: Observation = observationRepository.save(observation)
+        val images = imageService.listImagesMetadata(observationCreateModel.imageIds.toSet());
+        observation.imageIds = images.stream().map{it.id}.toList().toSet();
+        observation.description = observationCreateModel.description
+        observation.properties = observationCreateModel.properties
+        observation.title = observationCreateModel.title
+        val observationPutResponse: ObservationDocument = observationRepository.save(observation)
         return observationPutResponse.toObservationModel()
     }
 
-    fun getObservation(id: Long) : ObservationModel {
-        val observation : Optional<Observation> = observationRepository.findById(id)
+    fun getObservation(id: String) : ObservationModel {
+        val observation : Optional<ObservationDocument> = observationRepository.findById(id)
         if (observation.isEmpty) {
             throw NotFoundException(String.format("Observation %s not found", id))
         }

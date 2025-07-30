@@ -18,11 +18,11 @@ class ObservationDocument(
     var updatedTime: Instant,
     var location: Point,
     var enabled: Boolean,
-    val imageIds: Set<String>,
+    var imageIds: Set<String>,
     val reporterId: String,
-    val properties: Map<String, String>,
-    val description: String,
-    val title: String
+    var properties: Map<String, String>,
+    var description: String,
+    var title: String
 ) {
     fun toObservationModel() : ObservationModel {
         return ObservationModel(
@@ -64,11 +64,11 @@ class ImageMetadataDocument(
     @Id
     val id: String,
     val key: String,
-    val location: Point?,
-    val description: String?,
+    var location: Point?,
+    var description: String?,
     val createdTime: Instant,
-    val updatedTime: Instant,
-    val imageGeneratedTime: Instant?,
+    var updatedTime: Instant,
+    var imageGeneratedTime: Instant?,
     val reporterId: String,
 ) {
     fun toImageMetadataModel() : ImageMetadataModel {
