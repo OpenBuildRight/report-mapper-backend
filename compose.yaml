@@ -6,9 +6,9 @@ services:
     image: 'mysql:latest'
     environment:
       - 'MYSQL_DATABASE=report_db'
-      - 'MYSQL_USER=mysql_user'
-      - 'MYSQL_PASSWORD=mysql_secret'
-      - 'MYSQL_ROOT_PASSWORD=mysql_root_secret'
+      - 'MYSQL_USER=mysqluser'
+      - 'MYSQL_PASSWORD=mysqlsecret'
+      - 'MYSQL_ROOT_PASSWORD=mysqlrootsecret'
     ports:
       - '3306:3306'
     volumes:
