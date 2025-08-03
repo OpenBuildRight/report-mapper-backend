@@ -16,7 +16,7 @@ openbuildright:
                 bucket: dev
                 access-key: minio_root_user
                 secret-key: minio_root_password
-                endpoint: minio
+                endpoint: http://localhost:9000
 
 spring:
     application:
