@@ -20,16 +20,6 @@ class ImageService(
     @param:Autowired val imageObjectRepository: ImageObjectRepository
 ) {
 
-    fun normalizeImage(data: ByteArray, name: String) {
-        var extension: String? = null
-        val i: Int = name.lastIndexOf('.')
-        if (i > 0) {
-            extension = name.substring(i + 1)
-        } else {
-            throw InvalidImageFile("Unable to determine file type from image name ${name}.")
-        }
-
-    }
 
     fun createImage(
         data: ByteArray,
