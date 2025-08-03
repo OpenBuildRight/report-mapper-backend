@@ -8,8 +8,6 @@ import io.minio.GetObjectArgs
 import io.minio.MakeBucketArgs
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.stereotype.Service
 
 interface ImageObjectRepository {
 
@@ -18,8 +16,6 @@ interface ImageObjectRepository {
     fun get(objectKey: String): ByteArray
 }
 
-@Service
-@ConditionalOnMissingBean(type = arrayOf("ImageObjectRepository"))
 class InMemoryImageObjectRepository : ImageObjectRepository {
 
     val objectStore: MutableMap<String, ByteArray> = mutableMapOf()
@@ -39,7 +35,6 @@ class InMemoryImageObjectRepository : ImageObjectRepository {
     }
 }
 
-@Service
 class MinioObjectStoreRepository(
     val client: MinioClient,
     val bucket: String

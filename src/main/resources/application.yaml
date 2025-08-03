@@ -11,22 +11,19 @@ server:
 ---
 openbuildright:
     reportmapper:
-hibernate:
-    hbm2ddl:
-        auto: create-drop
-spring:
-    config:
-        activate:
-            on-profile: local
----
-openbuildright:
-    reportmapper:
+        objectstore:
+            minio:
+                bucket: dev
+                access-key: minio_root_user
+                secret-key: minio_root_password
+                endpoint: minio
+
 spring:
     application:
         name: map-report-backend
     config:
         activate:
-            on-profile: local-docker-compose
+            on-profile: local
     data:
         mongodb:
             host: localhost
