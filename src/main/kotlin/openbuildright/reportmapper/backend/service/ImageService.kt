@@ -5,6 +5,7 @@ import openbuildright.reportmapper.backend.db.mongo.ImageMetadataDocument
 import openbuildright.reportmapper.backend.db.mongo.ImageMetadataDocumentRepository
 import openbuildright.reportmapper.backend.db.objectstore.ImageObjectRepository
 import openbuildright.reportmapper.backend.exception.NotFoundException
+import openbuildright.reportmapper.backend.image.readImageMetadata
 import openbuildright.reportmapper.backend.model.ImageMetadataCreateModel
 import openbuildright.reportmapper.backend.model.ImageMetadataModel
 import openbuildright.reportmapper.backend.model.ImageModel
@@ -38,6 +39,7 @@ class ImageService(
             reporterId = metadata.reporterId,
             imageGeneratedTime = metadata.imageGeneratedTime
         )
+        readImageMetadata(data)
         imageObjectRepository.put(objectKey, data)
         val metadataDocumentResponse: ImageMetadataDocument = imageRepository.save(metadataDocument)
         return metadataDocumentResponse.toImageMetadataModel()
