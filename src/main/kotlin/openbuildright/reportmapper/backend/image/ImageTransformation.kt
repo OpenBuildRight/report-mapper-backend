@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.math.min
 import java.awt.Graphics2D
+import java.io.InputStream
 import javax.imageio.ImageReader
 import javax.imageio.metadata.IIOMetadata
 import javax.imageio.stream.ImageInputStream
@@ -81,18 +82,24 @@ fun getImageType(name: String) : ImageType {
 
 fun readImageMetadata(data: ByteArray) {
 
-    val inputStream : ImageInputStream? = ImageIO.createImageInputStream(data)
-    if (inputStream == null) {
+
+    val imageInputStream : ImageInputStream? = ImageIO.createImageInputStream(data.inputStream())
+    if (imageInputStream == null) {
         LOGGER.error {  "Unable to generate input stream." }
         throw InvalidImage("Unable to generate input stream.")
     }
-    val readers : Iterator<ImageReader> = ImageIO.getImageReaders(inputStream)
+    val readers : Iterator<ImageReader> = ImageIO.getImageReaders(imageInputStream)
     for (reader: ImageReader in readers) {
-        reader.setInput(inputStream, true)
-        val numberImages = reader.getNumImages(true)
+        reader.setInput(imageInputStream, false)
+        val numberImages = reader.getNumImages(true);
         for (i in 0..<numberImages) {
             val metadata : IIOMetadata = reader.getImageMetadata(i)
-            val names = metadata.metadataFormatNames
+            val names : Array<out String?>? = metadata.getMetadataFormatNames()
+            if (names != null) {
+                for (name in names) {
+                    System.out.println(name)
+                }
+            }
         }
     }
 }
@@ -115,7 +122,7 @@ fun resizeImage(data: ByteArray, maxWidth: Int, maxHeight: Int) : ByteArray {
     val targetImage = BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB)
     val graphics2D : Graphics2D = targetImage.createGraphics()
     graphics2D.drawImage(image, 0, 0, null )
-    val outStream : ByteArrayOutputStream = ByteArrayOutputStream()
+    val outStream  = ByteArrayOutputStream()
     ImageIO.write(targetImage, "jpg", outStream)
     return outStream.toByteArray()
 }
