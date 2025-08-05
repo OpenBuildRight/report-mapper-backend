@@ -43,7 +43,7 @@ class ObservationController(
 
     @PutMapping("/{id}")
     fun updateObservation(
-        id: String,
+        @PathVariable id: String,
         @RequestBody dto: ObservationCreateDto,
     ): ObservationDto {
         val observation: ObservationModel = observationService.updateObservation(
@@ -62,7 +62,7 @@ class ObservationController(
     }
 
     @GetMapping("/{id}")
-    fun getObservation(id: String): ObservationDto {
+    fun getObservation(@PathVariable id: String): ObservationDto {
         return ObservationDto.fromObservationModel(observationService.getObservation(id))
     }
 

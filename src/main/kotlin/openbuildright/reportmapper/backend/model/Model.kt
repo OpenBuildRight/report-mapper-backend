@@ -49,6 +49,8 @@ data class ImageMetadataModel(
     val reporterId: String
 )
 
+data class ImageMetadataExtract(val location: GeoLocationModel?)
+
 
 data class ImageModel(val image: ByteArray, val metadata: ImageMetadataModel) {
     override fun equals(other: Any?): Boolean {

@@ -1,19 +1,23 @@
 package openbuildright.reportmapper.backend.image
 
+import com.drew.imaging.ImageMetadataReader
+import com.drew.lang.GeoLocation
+import com.drew.metadata.Metadata
+import com.drew.metadata.exif.GpsDirectory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import openbuildright.reportmapper.backend.exception.ReportMapperException
+import openbuildright.reportmapper.backend.model.GeoLocationModel
+import openbuildright.reportmapper.backend.model.ImageMetadataExtract
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
+import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.image.BufferedImage
+import java.awt.image.ImageObserver
 import javax.imageio.ImageIO
 import kotlin.math.min
-import java.awt.Graphics2D
-import java.io.InputStream
-import javax.imageio.ImageReader
-import javax.imageio.metadata.IIOMetadata
-import javax.imageio.stream.ImageInputStream
 
 
 private val LOGGER : KLogger = KotlinLogging.logger {}
@@ -80,49 +84,48 @@ fun getImageType(name: String) : ImageType {
 
 
 
-fun readImageMetadata(data: ByteArray) {
-
-
-    val imageInputStream : ImageInputStream? = ImageIO.createImageInputStream(data.inputStream())
-    if (imageInputStream == null) {
-        LOGGER.error {  "Unable to generate input stream." }
-        throw InvalidImage("Unable to generate input stream.")
+fun readImageMetadata(data: ByteArray) : ImageMetadataExtract {
+    val metadata : Metadata? = ImageMetadataReader.readMetadata(data.inputStream())
+    val gpsDirectory = metadata?.getFirstDirectoryOfType<GpsDirectory>(GpsDirectory::class.java)
+    val latitude : Double? = gpsDirectory?.geoLocation?.latitude
+    val longitude: Double? = gpsDirectory?.geoLocation?.longitude
+    val geoLocation: GeoLocationModel?
+    if (latitude != null && longitude != null) {
+        geoLocation = GeoLocationModel(latitude, longitude)
+    } else {
+        geoLocation = null
     }
-    val readers : Iterator<ImageReader> = ImageIO.getImageReaders(imageInputStream)
-    for (reader: ImageReader in readers) {
-        reader.setInput(imageInputStream, false)
-        val numberImages = reader.getNumImages(true);
-        for (i in 0..<numberImages) {
-            val metadata : IIOMetadata = reader.getImageMetadata(i)
-            val names : Array<out String?>? = metadata.getMetadataFormatNames()
-            if (names != null) {
-                for (name in names) {
-                    System.out.println(name)
-                }
-            }
-        }
-    }
+    return ImageMetadataExtract(location=geoLocation)
 }
 
 fun resizePercent(current: Int, target: Int) : Double {
     if (current <= target) {
         return 1.0
     }
-    return current.toDouble() / target.toDouble()
+    return target.toDouble() / current.toDouble()
 }
 
 
 fun resizeImage(data: ByteArray, maxWidth: Int, maxHeight: Int) : ByteArray {
+    if (data.isEmpty()) {
+        throw InvalidImage("Image is empty.")
+    }
     val image: BufferedImage = ImageIO.read(data.inputStream())
-    val widthPercent : Double = resizePercent(image.width, maxWidth)
-    val heightPercent : Double = resizePercent(image.height, maxHeight)
+    val imageWidth : Int = image.width
+    val imageHeight : Int = image.height
+    val widthPercent : Double = resizePercent(imageWidth, maxWidth)
+    val heightPercent : Double = resizePercent(imageHeight, maxHeight)
     val resizePercent : Double = min(widthPercent, heightPercent)
-    val targetWidth : Int = (image.width * resizePercent).toInt()
-    val targetHeight : Int = (image.height * resizePercent).toInt()
+    val targetWidth : Int = (imageWidth * resizePercent).toInt()
+    val targetHeight : Int = (imageHeight * resizePercent).toInt()
+    val resizedImage = image.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT)
     val targetImage = BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB)
-    val graphics2D : Graphics2D = targetImage.createGraphics()
-    graphics2D.drawImage(image, 0, 0, null )
+    targetImage.graphics.drawImage(resizedImage, 0, 0, null)
     val outStream  = ByteArrayOutputStream()
     ImageIO.write(targetImage, "jpg", outStream)
-    return outStream.toByteArray()
+    val targetBytes = outStream.toByteArray()
+    if (targetBytes.isEmpty()) {
+        throw ReportMapperException("Failed to create valid image")
+    }
+    return targetBytes
 }

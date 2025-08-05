@@ -12,6 +12,10 @@ server:
 openbuildright:
     reportmapper:
         objectstore:
+            image:
+                max-width: 500
+                max-height: 500
+                normalize-image: true
             minio:
                 bucket: dev
                 access-key: minio_root_user
@@ -21,6 +25,7 @@ openbuildright:
 spring:
     application:
         name: map-report-backend
+
     config:
         activate:
             on-profile: local
@@ -31,5 +36,10 @@ spring:
             username: root
             password: example
             database: admin
-
+logging:
+    level:
+        org:
+            springframework:
+                web: debug
+        openbuildright: debug
 

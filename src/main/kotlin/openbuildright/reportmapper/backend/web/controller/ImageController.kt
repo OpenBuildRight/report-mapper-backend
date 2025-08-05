@@ -10,6 +10,7 @@ import openbuildright.reportmapper.backend.web.dto.ImageDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
+import javax.print.attribute.standard.Media
 
 @RestController
 @RequestMapping("/image")
@@ -45,12 +46,12 @@ class ImageController(
     }
 
     @GetMapping("/{id}")
-    fun getImage(id: String): ImageDto {
+    fun getImage(@PathVariable id: String): ImageDto {
         return ImageDto.fromImageModel(imageService.getImageMetadata(id))
     }
 
-    @GetMapping("/{id}/download", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE))
-    fun downloadImage(id: String): ByteArray {
+    @GetMapping("/download/{id}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    fun downloadImage(@PathVariable id: String): ByteArray {
         return imageService.getImage(id).image
     }
 }

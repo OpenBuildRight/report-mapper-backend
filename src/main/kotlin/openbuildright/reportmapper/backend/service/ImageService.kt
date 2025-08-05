@@ -5,20 +5,25 @@ import openbuildright.reportmapper.backend.db.mongo.ImageMetadataDocument
 import openbuildright.reportmapper.backend.db.mongo.ImageMetadataDocumentRepository
 import openbuildright.reportmapper.backend.db.objectstore.ImageObjectRepository
 import openbuildright.reportmapper.backend.exception.NotFoundException
+import openbuildright.reportmapper.backend.image.getImageType
 import openbuildright.reportmapper.backend.image.readImageMetadata
+import openbuildright.reportmapper.backend.image.resizeImage
 import openbuildright.reportmapper.backend.model.ImageMetadataCreateModel
 import openbuildright.reportmapper.backend.model.ImageMetadataModel
 import openbuildright.reportmapper.backend.model.ImageModel
-import openbuildright.reportmapper.backend.web.InvalidImageFile
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.geo.Point
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.*
 
 @Service
 class ImageService(
-    @param:Autowired val imageRepository: ImageMetadataDocumentRepository,
-    @param:Autowired val imageObjectRepository: ImageObjectRepository
+    val imageRepository: ImageMetadataDocumentRepository,
+    val imageObjectRepository: ImageObjectRepository,
+    val maxWidth: Int,
+    val maxHeight: Int,
+    val normalizeImage: Boolean
 ) {
 
 
@@ -26,21 +31,27 @@ class ImageService(
         data: ByteArray,
         metadata: ImageMetadataCreateModel,
     ): ImageMetadataModel {
-        val imageId: String = UUID.randomUUID().toString()
+        val imageId: String = UUID.randomUUID().toString() + ".jpeg"
         val objectKey: String = Instant.now().epochSecond.toString() + "/" + imageId
         val now = Instant.now()
+        val locationPoint : Point?
+        if (metadata.location != null) {
+            locationPoint = geoLocationModelToPoint(metadata.location)
+        } else {
+            locationPoint = readImageMetadata(data).location?.let {geoLocationModelToPoint(it)}
+        }
         val metadataDocument = ImageMetadataDocument(
             id = imageId,
             key = objectKey,
             createdTime = now,
-            location = metadata.location?.let { geoLocationModelToPoint(it) },
+            location =  locationPoint,
             description = metadata.description,
             updatedTime = now,
             reporterId = metadata.reporterId,
             imageGeneratedTime = metadata.imageGeneratedTime
         )
-        readImageMetadata(data)
-        imageObjectRepository.put(objectKey, data)
+        val resizedImage : ByteArray = resizeImage(data, maxWidth, maxHeight)
+        imageObjectRepository.put(objectKey, resizedImage)
         val metadataDocumentResponse: ImageMetadataDocument = imageRepository.save(metadataDocument)
         return metadataDocumentResponse.toImageMetadataModel()
     }

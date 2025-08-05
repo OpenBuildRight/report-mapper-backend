@@ -8,6 +8,7 @@ import io.minio.GetObjectArgs
 import io.minio.MakeBucketArgs
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
+import org.springframework.stereotype.Repository
 
 interface ImageObjectRepository {
 
@@ -35,6 +36,7 @@ class InMemoryImageObjectRepository : ImageObjectRepository {
     }
 }
 
+@Repository
 class MinioObjectStoreRepository(
     val client: MinioClient,
     val bucket: String
