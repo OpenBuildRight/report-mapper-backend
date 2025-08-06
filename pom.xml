@@ -8,7 +8,7 @@
 		<version>3.5.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>openbuildright</groupId>
+	<groupId>com.openbuildright</groupId>
 	<artifactId>report-mapper-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>map-report-backend</name>
@@ -100,6 +100,26 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		<dependency>
+    		<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+    		<version>8.5.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.drewnoakes</groupId>
+			<artifactId>metadata-extractor</artifactId>
+			<version>2.19.0</version>
 		</dependency>
 	</dependencies>
 

@@ -4,8 +4,16 @@ hibernate:
     show_sql: true
 openbuildright:
     reportmapper:
-        crypto:
-            key: 123abc
+        objectstore:
+            image:
+                max-width: 1280
+                max-height: 1280
+                normalize-image: true
+            minio:
+                bucket: dev
+                access-key: minio_root_user_mock
+                secret-key: minio_root_password_mock
+                endpoint: http://localhost:1234
 server:
     port: 8081
 spring:
@@ -16,3 +24,10 @@ spring:
         password: sa
         url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
         username: sa
+    data:
+        mongodb:
+            host: localhost
+            port: 1234
+            username: root_mock
+            password: example_mock
+            database: admin
