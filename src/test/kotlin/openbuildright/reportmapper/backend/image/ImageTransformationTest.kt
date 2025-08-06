@@ -21,6 +21,17 @@ data class GetImageTypeTestParam(
 )
 
 class ImageTransformationTest {
+
+    @Test
+    fun readImageMetadataTest() {
+        val imageFile : File = jpegExifImageFile()
+        val originalImageBytes : ByteArray = imageFile.readBytes()
+        val metadata = readImageMetadata(originalImageBytes)
+        assertTrue(metadata.location != null)
+
+
+    }
+
     @Test
     fun resizeImageTest() {
         val imageFile : File = jpegExifImageFile()

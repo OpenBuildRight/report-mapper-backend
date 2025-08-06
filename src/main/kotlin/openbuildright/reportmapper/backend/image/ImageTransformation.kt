@@ -1,8 +1,8 @@
 package openbuildright.reportmapper.backend.image
 
 import com.drew.imaging.ImageMetadataReader
-import com.drew.lang.GeoLocation
 import com.drew.metadata.Metadata
+import com.drew.metadata.exif.ExifSubIFDDirectory
 import com.drew.metadata.exif.GpsDirectory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -12,10 +12,9 @@ import openbuildright.reportmapper.backend.model.ImageMetadataExtract
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
-import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.image.BufferedImage
-import java.awt.image.ImageObserver
+import java.time.Instant
 import javax.imageio.ImageIO
 import kotlin.math.min
 
@@ -83,19 +82,27 @@ fun getImageType(name: String) : ImageType {
 }
 
 
+fun readMetadataDateTime(metadata: Metadata) : Instant? {
+    val exifSubIFDirectory : ExifSubIFDDirectory? = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
+    return exifSubIFDirectory?.dateOriginal?.toInstant()
+}
+
+fun readMetadataLocation(metadata: Metadata) : GeoLocationModel? {
+    val gpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory::class.java)
+    val latitude : Double? = gpsDirectory?.geoLocation?.latitude
+    val longitude: Double? = gpsDirectory?.geoLocation?.longitude
+    if (latitude != null && longitude != null) {
+        return GeoLocationModel(latitude, longitude)
+    }
+    return null
+}
+
 
 fun readImageMetadata(data: ByteArray) : ImageMetadataExtract {
     val metadata : Metadata? = ImageMetadataReader.readMetadata(data.inputStream())
-    val gpsDirectory = metadata?.getFirstDirectoryOfType<GpsDirectory>(GpsDirectory::class.java)
-    val latitude : Double? = gpsDirectory?.geoLocation?.latitude
-    val longitude: Double? = gpsDirectory?.geoLocation?.longitude
-    val geoLocation: GeoLocationModel?
-    if (latitude != null && longitude != null) {
-        geoLocation = GeoLocationModel(latitude, longitude)
-    } else {
-        geoLocation = null
-    }
-    return ImageMetadataExtract(location=geoLocation)
+    val geoLocation : GeoLocationModel? = metadata?.let {readMetadataLocation(it)}
+    val dateTime: Instant? = metadata?.let {readMetadataDateTime(it)}
+    return ImageMetadataExtract(location=geoLocation,dateTime)
 }
 
 fun resizePercent(current: Int, target: Int) : Double {

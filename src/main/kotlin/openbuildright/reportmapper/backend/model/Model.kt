@@ -49,7 +49,7 @@ data class ImageMetadataModel(
     val reporterId: String
 )
 
-data class ImageMetadataExtract(val location: GeoLocationModel?)
+data class ImageMetadataExtract(val location: GeoLocationModel?, val observationTime: Instant?)
 
 
 data class ImageModel(val image: ByteArray, val metadata: ImageMetadataModel) {
