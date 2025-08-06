@@ -13,8 +13,8 @@ openbuildright:
     reportmapper:
         objectstore:
             image:
-                max-width: 500
-                max-height: 500
+                max-width: 1280
+                max-height: 1280
                 normalize-image: true
             minio:
                 bucket: dev
