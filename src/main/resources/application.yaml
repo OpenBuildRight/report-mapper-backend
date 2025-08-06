@@ -11,22 +11,24 @@ server:
 ---
 openbuildright:
     reportmapper:
-hibernate:
-    hbm2ddl:
-        auto: create-drop
-spring:
-    config:
-        activate:
-            on-profile: local
----
-openbuildright:
-    reportmapper:
+        objectstore:
+            image:
+                max-width: 1280
+                max-height: 1280
+                normalize-image: true
+            minio:
+                bucket: dev
+                access-key: minio_root_user
+                secret-key: minio_root_password
+                endpoint: http://localhost:9000
+
 spring:
     application:
         name: map-report-backend
+
     config:
         activate:
-            on-profile: local-docker-compose
+            on-profile: local
     data:
         mongodb:
             host: localhost
@@ -34,5 +36,10 @@ spring:
             username: root
             password: example
             database: admin
-
+logging:
+    level:
+        org:
+            springframework:
+                web: debug
+        openbuildright: debug
 
