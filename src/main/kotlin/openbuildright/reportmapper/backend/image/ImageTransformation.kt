@@ -119,7 +119,7 @@ fun resizeImage(data: ByteArray, maxWidth: Int, maxHeight: Int) : ByteArray {
     val targetWidth : Int = (imageWidth * resizePercent).toInt()
     val targetHeight : Int = (imageHeight * resizePercent).toInt()
     val resizedImage = image.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT)
-    val targetImage = BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB)
+    val targetImage = BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB)
     targetImage.graphics.drawImage(resizedImage, 0, 0, null)
     val outStream  = ByteArrayOutputStream()
     ImageIO.write(targetImage, "jpg", outStream)
