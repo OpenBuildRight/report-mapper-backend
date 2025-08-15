@@ -22,6 +22,9 @@ openbuildright:
                 secret-key: minio_root_password
                 endpoint: http://localhost:9000
 
+swagger:
+  authorization-url: http://localhost:9003/realms/my-realm/protocol/openid-connect/auth
+
 spring:
     application:
         name: map-report-backend
