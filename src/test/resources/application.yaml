@@ -17,6 +17,22 @@ openbuildright:
 server:
     port: 8081
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            provider: keycloak
+            clientId: mapper
+            clientSecret: OY81t9AOADA66Jm8NFaEJcnkCCdPP9ff
+        provider:
+          keycloak:
+            issuer-uri:  "http://localhost:9003/realms/master"
+            authorization-uri:  "http://localhost:9003/realms/master/protocol/openid-connect/auth"
+            token-uri:  "http://localhost:9003/realms/master/protocol/openid-connect/token"
+            user-info-uri:  "http://localhost:9003/realms/master/protocol/openid-connect/userinfo"
+            jwk-set-uri: http://localhost:9003/realms/master/protocol/openid-connect/certs
+
     application:
         name: map-report-backend
     datasource:

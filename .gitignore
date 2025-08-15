@@ -33,3 +33,10 @@ build/
 .vscode/
 
 .java-version
+.run
+
+### Terraform ###
+.terraform
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
