@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean
 
 @Configuration
 class OpenAPISecurityConfig {
-    @Value("\${swagger.authrization-url}")
+    @Value("\${swagger.authorization-url}")
     var authorizationUrl: String? = null
 
     @Bean
