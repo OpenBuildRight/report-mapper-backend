@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OIDC Debug Page</title>
+</head>
+<body>
+    <h1>OIDC Debug Page</h1>
+    <div id="debug-info">
+        <h2>Debug Information</h2>
+        <div id="localStorage"></div>
+        <div id="url-params"></div>
+        <div id="auth-status"></div>
+    </div>
+
+    <script>
+        // Display localStorage contents
+        const localStorageDiv = document.getElementById('localStorage');
+        localStorageDiv.innerHTML = '<h3>localStorage Contents:</h3><pre>' + 
+            JSON.stringify(localStorage, null, 2) + '</pre>';
+
+        // Display URL parameters
+        const urlParamsDiv = document.getElementById('url-params');
+        const urlParams = new URLSearchParams(window.location.search);
+        const params = {};
+        for (const [key, value] of urlParams) {
+            params[key] = value;
+        }
+        urlParamsDiv.innerHTML = '<h3>URL Parameters:</h3><pre>' + 
+            JSON.stringify(params, null, 2) + '</pre>';
+
+        // Display authentication status
+        const authStatusDiv = document.getElementById('auth-status');
+        const hasToken = !!localStorage.getItem('access_token');
+        authStatusDiv.innerHTML = '<h3>Authentication Status:</h3><p>Has Access Token: ' + 
+            hasToken + '</p><p>Token: ' + 
+            (localStorage.getItem('access_token') ? 
+             localStorage.getItem('access_token').substring(0, 20) + '...' : 
+             'None') + '</p>';
+
+        console.log('Debug page loaded');
+        console.log('localStorage:', localStorage);
+        console.log('URL params:', params);
+    </script>
+</body>
+</html>
