@@ -43,3 +43,6 @@ build/
 
 ## SDKMAN
 .sdkmanrc
+
+## NPM
+node_modules/
