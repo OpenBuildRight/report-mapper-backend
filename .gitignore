@@ -18,6 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
+.run
 
 ### NetBeans ###
 /nbproject/private/
@@ -33,10 +34,12 @@ build/
 .vscode/
 
 .java-version
-.run
 
 ### Terraform ###
 .terraform
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
+
+## SDKMAN
+.sdkmanrc
