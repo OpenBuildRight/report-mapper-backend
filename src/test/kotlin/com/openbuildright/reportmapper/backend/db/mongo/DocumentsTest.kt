@@ -12,7 +12,7 @@ import kotlin.test.assertNull
 class DocumentsTest {
 
     @Test
-    fun `ObservationDocument toObservationModel should convert correctly`() {
+    fun observationDocumentToObservationModelShouldConvertCorrectly() {
         // Given
         val id = "test-observation-id"
         val observationTime = Instant.now()
@@ -59,7 +59,7 @@ class DocumentsTest {
     }
 
     @Test
-    fun `ObservationDocument fromObservationModel should convert correctly`() {
+    fun observationDocumentFromObservationModelShouldConvertCorrectly() {
         // Given
         val id = "test-observation-id"
         val observationTime = Instant.now()
@@ -106,7 +106,7 @@ class DocumentsTest {
     }
 
     @Test
-    fun `ImageMetadataDocument toImageMetadataModel should convert correctly with all fields`() {
+    fun imageMetadataDocumentToImageMetadataModelShouldConvertCorrectlyWithAllFields() {
         // Given
         val id = "test-image-id"
         val key = "test-key"
@@ -144,7 +144,7 @@ class DocumentsTest {
     }
 
     @Test
-    fun `ImageMetadataDocument toImageMetadataModel should handle null fields`() {
+    fun imageMetadataDocumentToImageMetadataModelShouldHandleNullFields() {
         // Given
         val id = "test-image-id"
         val key = "test-key"
@@ -178,7 +178,7 @@ class DocumentsTest {
     }
 
     @Test
-    fun `ImageMetadataDocument fromImageMetadataModel should convert correctly with all fields`() {
+    fun imageMetadataDocumentFromImageMetadataModelShouldConvertCorrectlyWithAllFields() {
         // Given
         val id = "test-image-id"
         val key = "test-key"
@@ -216,7 +216,7 @@ class DocumentsTest {
     }
 
     @Test
-    fun `ImageMetadataDocument fromImageMetadataModel should handle null fields`() {
+    fun imageMetadataDocumentFromImageMetadataModelShouldHandleNullFields() {
         // Given
         val id = "test-image-id"
         val key = "test-key"
@@ -250,7 +250,7 @@ class DocumentsTest {
     }
 
     @Test
-    fun `ObservationDocument round trip conversion should preserve values`() {
+    fun observationDocumentRoundTripConversionShouldPreserveValues() {
         // Given
         val originalModel = ObservationModel(
             id = "test-id",
@@ -286,7 +286,7 @@ class DocumentsTest {
     }
 
     @Test
-    fun `ImageMetadataDocument round trip conversion should preserve values`() {
+    fun imageMetadataDocumentRoundTripConversionShouldPreserveValues() {
         // Given
         val originalModel = ImageMetadataModel(
             id = "test-id",

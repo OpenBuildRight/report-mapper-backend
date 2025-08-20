@@ -35,7 +35,7 @@ class ObservationServiceTest {
     }
 
     @Test
-    fun `createObservation should create observation with valid data`() {
+    fun createObservationShouldCreateObservationWithValidData() {
         // Given
         val observationTime = Instant.now()
         val location = GeoLocationModel(latitude = 40.7128, longitude = -74.0060)
@@ -75,7 +75,7 @@ class ObservationServiceTest {
     }
 
     @Test
-    fun `createObservation should handle empty image ids`() {
+    fun createObservationShouldHandleEmptyImageIds() {
         // Given
         val observationTime = Instant.now()
         val location = GeoLocationModel(latitude = 40.7128, longitude = -74.0060)
@@ -111,7 +111,7 @@ class ObservationServiceTest {
     }
 
     @Test
-    fun `updateObservation should update existing observation`() {
+    fun updateObservationShouldUpdateExistingObservation() {
         // Given
         val observationId = "observation123"
         val observationTime = Instant.now()
@@ -154,7 +154,7 @@ class ObservationServiceTest {
     }
 
     @Test
-    fun `updateObservation should throw ResponseStatusException when observation not found`() {
+    fun updateObservationShouldThrowResponseStatusExceptionWhenObservationNotFound() {
         // Given
         val observationId = "non-existent-observation"
         val observationModel = mock<ObservationCreateModel>()
@@ -169,7 +169,7 @@ class ObservationServiceTest {
     }
 
     @Test
-    fun `getObservation should return observation when found`() {
+    fun getObservationShouldReturnObservationWhenFound() {
         // Given
         val observationId = "observation123"
         val document = mock<ObservationDocument>()
@@ -187,7 +187,7 @@ class ObservationServiceTest {
     }
 
     @Test
-    fun `getObservation should throw NotFoundException when observation not found`() {
+    fun getObservationShouldThrowNotFoundExceptionWhenObservationNotFound() {
         // Given
         val observationId = "non-existent-observation"
         whenever(observationRepository.findById(observationId)).thenReturn(Optional.empty())
@@ -200,7 +200,7 @@ class ObservationServiceTest {
     }
 
     @Test
-    fun `updateObservation should update all fields correctly`() {
+    fun updateObservationShouldUpdateAllFieldsCorrectly() {
         // Given
         val observationId = "observation123"
         val observationTime = Instant.now()

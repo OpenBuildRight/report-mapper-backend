@@ -26,7 +26,7 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun `createObservation should create observation with valid data`() {
+    fun createObservationShouldCreateObservationWithValidData() {
         // Given
         val observationTime = Instant.now()
         val location = GeoLocationDto(latitude = 40.7128, longitude = -74.0060)
@@ -74,7 +74,7 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun `createObservation should handle empty image ids`() {
+    fun createObservationShouldHandleEmptyImageIds() {
         // Given
         val observationTime = Instant.now()
         val location = GeoLocationDto(latitude = 40.7128, longitude = -74.0060)
@@ -119,7 +119,7 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun `createObservation should handle empty properties`() {
+    fun createObservationShouldHandleEmptyProperties() {
         // Given
         val observationTime = Instant.now()
         val location = GeoLocationDto(latitude = 40.7128, longitude = -74.0060)
@@ -164,7 +164,7 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun `updateObservation should update existing observation`() {
+    fun updateObservationShouldUpdateExistingObservation() {
         // Given
         val observationId = "observation123"
         val observationTime = Instant.now()
@@ -214,7 +214,7 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun `getObservation should return observation`() {
+    fun getObservationShouldReturnObservation() {
         // Given
         val observationId = "observation123"
         val expectedObservationModel = ObservationModel(
@@ -245,7 +245,7 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun `createObservation should handle null description`() {
+    fun createObservationShouldHandleNullDescription() {
         // Given
         val observationTime = Instant.now()
         val location = GeoLocationDto(latitude = 40.7128, longitude = -74.0060)
@@ -290,7 +290,7 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun `updateObservation should handle different location coordinates`() {
+    fun updateObservationShouldHandleDifferentLocationCoordinates() {
         // Given
         val observationId = "observation123"
         val observationTime = Instant.now()

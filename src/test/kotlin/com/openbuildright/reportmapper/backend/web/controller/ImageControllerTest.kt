@@ -29,7 +29,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `createImage should create image with valid data`() {
+    fun createImageShouldCreateImageWithValidData() {
         // Given
         val file = MockMultipartFile(
             "file",
@@ -77,7 +77,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `createImage should handle null location`() {
+    fun createImageShouldHandleNullLocation() {
         // Given
         val file = MockMultipartFile(
             "file",
@@ -121,7 +121,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `createImage should throw InvalidImageFile when file is empty`() {
+    fun createImageShouldThrowInvalidImageFileWhenFileIsEmpty() {
         // Given
         val emptyFile = MockMultipartFile(
             "file",
@@ -145,7 +145,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `getImage should return image metadata`() {
+    fun getImageShouldReturnImageMetadata() {
         // Given
         val imageId = "test-image-id"
         val expectedImageMetadata = ImageMetadataModel(
@@ -172,7 +172,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `downloadImage should return image bytes`() {
+    fun downloadImageShouldReturnImageBytes() {
         // Given
         val imageId = "test-image-id"
         val thumbnail = false
@@ -200,7 +200,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `downloadImage should return thumbnail when thumbnail parameter is true`() {
+    fun downloadImageShouldReturnThumbnailWhenThumbnailParameterIsTrue() {
         // Given
         val imageId = "test-image-id"
         val thumbnail = true
@@ -228,7 +228,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `downloadImage with thumbnail path should return thumbnail`() {
+    fun downloadImageWithThumbnailPathShouldReturnThumbnail() {
         // Given
         val imageId = "test-image-id"
         val thumbnailBytes = "thumbnail data".toByteArray()
@@ -255,7 +255,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `createImage should handle partial location data`() {
+    fun createImageShouldHandlePartialLocationData() {
         // Given
         val file = MockMultipartFile(
             "file",
@@ -299,7 +299,7 @@ class ImageControllerTest {
     }
 
     @Test
-    fun `createImage should handle null description and imageGeneratedTime`() {
+    fun createImageShouldHandleNullDescriptionAndImageGeneratedTime() {
         // Given
         val file = MockMultipartFile(
             "file",

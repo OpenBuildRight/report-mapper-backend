@@ -11,7 +11,7 @@ import kotlin.test.assertNull
 class DtoTest {
 
     @Test
-    fun `GeoLocationDto toGeoLocationModel should convert correctly`() {
+    fun geoLocationDtoToGeoLocationModelShouldConvertCorrectly() {
         // Given
         val latitude = 40.7128
         val longitude = -74.0060
@@ -26,7 +26,7 @@ class DtoTest {
     }
 
     @Test
-    fun `GeoLocationDto fromGeoLocationModel should convert correctly`() {
+    fun geoLocationDtoFromGeoLocationModelShouldConvertCorrectly() {
         // Given
         val latitude = 50.0
         val longitude = -100.0
@@ -41,7 +41,7 @@ class DtoTest {
     }
 
     @Test
-    fun `ImageDto fromImageModel should convert correctly with all fields`() {
+    fun imageDtoFromImageModelShouldConvertCorrectlyWithAllFields() {
         // Given
         val id = "test-image-id"
         val createdTime = Instant.now()
@@ -73,7 +73,7 @@ class DtoTest {
     }
 
     @Test
-    fun `ImageDto fromImageModel should handle null fields`() {
+    fun imageDtoFromImageModelShouldHandleNullFields() {
         // Given
         val id = "test-image-id"
         val createdTime = Instant.now()
@@ -101,7 +101,7 @@ class DtoTest {
     }
 
     @Test
-    fun `ObservationDto fromObservationModel should convert correctly`() {
+    fun observationDtoFromObservationModelShouldConvertCorrectly() {
         // Given
         val id = "test-observation-id"
         val observationTime = Instant.now()
@@ -146,7 +146,7 @@ class DtoTest {
     }
 
     @Test
-    fun `ObservationDto fromObservationModel should handle empty collections`() {
+    fun observationDtoFromObservationModelShouldHandleEmptyCollections() {
         // Given
         val id = "test-observation-id"
         val observationTime = Instant.now()
@@ -191,7 +191,7 @@ class DtoTest {
     }
 
     @Test
-    fun `GeoLocationDto should handle negative coordinates`() {
+    fun geoLocationDtoShouldHandleNegativeCoordinates() {
         // Given
         val latitude = -33.8688
         val longitude = 151.2093
@@ -206,7 +206,7 @@ class DtoTest {
     }
 
     @Test
-    fun `GeoLocationDto should handle zero coordinates`() {
+    fun geoLocationDtoShouldHandleZeroCoordinates() {
         // Given
         val latitude = 0.0
         val longitude = 0.0
@@ -221,7 +221,7 @@ class DtoTest {
     }
 
     @Test
-    fun `ImageDto fromImageModel should handle extreme coordinates`() {
+    fun imageDtoFromImageModelShouldHandleExtremeCoordinates() {
         // Given
         val id = "test-image-id"
         val createdTime = Instant.now()

@@ -47,7 +47,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `createImage should create image with metadata and store in object repository`() {
+    fun createImageShouldCreateImageWithMetadataAndStoreInObjectRepository() {
         // Given
         val imageData = javaClass.getResourceAsStream("/test-data/jpeg/exif/2024-04-30_G012.JPG")?.readBytes() 
             ?: throw IllegalStateException("Test image not found")
@@ -76,7 +76,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `createImage should handle null location in metadata`() {
+    fun createImageShouldHandleNullLocationInMetadata() {
         // Given
         val imageData = javaClass.getResourceAsStream("/test-data/jpeg/exif/2024-04-30_G012.JPG")?.readBytes() 
             ?: throw IllegalStateException("Test image not found")
@@ -101,7 +101,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `getImageMetadata should return image metadata when found`() {
+    fun getImageMetadataShouldReturnImageMetadataWhenFound() {
         // Given
         val imageId = "test-image-id"
         val document = mock<ImageMetadataDocument>()
@@ -119,7 +119,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `getImageMetadata should throw NotFoundException when image not found`() {
+    fun getImageMetadataShouldThrowNotFoundExceptionWhenImageNotFound() {
         // Given
         val imageId = "non-existent-image-id"
         whenever(imageRepository.findById(imageId)).thenReturn(Optional.empty())
@@ -132,7 +132,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `getImage should return image with metadata when found`() {
+    fun getImageShouldReturnImageWithMetadataWhenFound() {
         // Given
         val imageId = "test-image-id"
         val imageData = "test image data".toByteArray()
@@ -156,7 +156,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `getImage should return thumbnail when thumbnail flag is true`() {
+    fun getImageShouldReturnThumbnailWhenThumbnailFlagIsTrue() {
         // Given
         val imageId = "test-image-id"
         val thumbnailData = "thumbnail data".toByteArray()
@@ -179,7 +179,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `listImagesMetadata should return set of image metadata for given ids`() {
+    fun listImagesMetadataShouldReturnSetOfImageMetadataForGivenIds() {
         // Given
         val imageIds = setOf("id1", "id2", "id3")
         val metadata1 = mock<ImageMetadataModel>()
@@ -208,7 +208,7 @@ class ImageServiceTest {
     }
 
     @Test
-    fun `listImagesMetadata should handle empty set`() {
+    fun listImagesMetadataShouldHandleEmptySet() {
         // Given
         val imageIds = emptySet<String>()
 
