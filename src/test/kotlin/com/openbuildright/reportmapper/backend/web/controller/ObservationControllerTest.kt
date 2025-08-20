@@ -54,7 +54,8 @@ class ObservationControllerTest {
             properties = properties,
             enabled = true,
             description = description,
-            title = title
+            title = title,
+            reporterId = "test-reporter-id"
         )
 
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
@@ -101,7 +102,8 @@ class ObservationControllerTest {
             properties = properties,
             enabled = true,
             description = description,
-            title = title
+            title = title,
+            reporterId = "test-reporter-id"
         )
 
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
@@ -145,7 +147,8 @@ class ObservationControllerTest {
             properties = properties,
             enabled = true,
             description = description,
-            title = title
+            title = title,
+            reporterId = "test-reporter-id"
         )
 
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
@@ -190,7 +193,8 @@ class ObservationControllerTest {
             properties = properties,
             enabled = true,
             description = description,
-            title = title
+            title = title,
+            reporterId = "test-reporter-id"
         )
 
         whenever(observationService.updateObservation(eq(observationId), any())).thenReturn(expectedObservationModel)
@@ -223,7 +227,8 @@ class ObservationControllerTest {
             properties = mapOf("key1" to "value1"),
             enabled = true,
             description = "Test observation",
-            title = "Test Observation"
+            title = "Test Observation",
+            reporterId = "test-reporter-id"
         )
 
         whenever(observationService.getObservation(observationId)).thenReturn(expectedObservationModel)
@@ -268,7 +273,8 @@ class ObservationControllerTest {
             properties = properties,
             enabled = true,
             description = description,
-            title = title
+            title = title,
+            reporterId = "test-reporter-id"
         )
 
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
@@ -313,7 +319,8 @@ class ObservationControllerTest {
             properties = properties,
             enabled = true,
             description = description,
-            title = title
+            title = title,
+            reporterId = "test-reporter-id"
         )
 
         whenever(observationService.updateObservation(eq(observationId), any())).thenReturn(expectedObservationModel)

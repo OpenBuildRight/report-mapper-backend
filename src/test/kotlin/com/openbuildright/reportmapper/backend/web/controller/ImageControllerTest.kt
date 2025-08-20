@@ -52,7 +52,10 @@ class ImageControllerTest {
 
         val expectedImageMetadata = ImageMetadataModel(
             id = "test-id",
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = imageGeneratedTime,
             location = GeoLocationModel(latitude, longitude),
             description = description
@@ -92,7 +95,10 @@ class ImageControllerTest {
 
         val expectedImageMetadata = ImageMetadataModel(
             id = "test-id",
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = Instant.now(),
             location = null,
             description = "Test description"
@@ -144,7 +150,10 @@ class ImageControllerTest {
         val imageId = "test-image-id"
         val expectedImageMetadata = ImageMetadataModel(
             id = imageId,
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = Instant.now(),
             location = GeoLocationModel(40.7128, -74.0060),
             description = "Test image"
@@ -170,7 +179,10 @@ class ImageControllerTest {
         val imageBytes = "test image data".toByteArray()
         val imageMetadata = ImageMetadataModel(
             id = imageId,
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = Instant.now(),
             location = GeoLocationModel(40.7128, -74.0060),
             description = "Test image"
@@ -195,7 +207,10 @@ class ImageControllerTest {
         val thumbnailBytes = "thumbnail data".toByteArray()
         val imageMetadata = ImageMetadataModel(
             id = imageId,
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = Instant.now(),
             location = GeoLocationModel(40.7128, -74.0060),
             description = "Test image"
@@ -219,7 +234,10 @@ class ImageControllerTest {
         val thumbnailBytes = "thumbnail data".toByteArray()
         val imageMetadata = ImageMetadataModel(
             id = imageId,
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = Instant.now(),
             location = GeoLocationModel(40.7128, -74.0060),
             description = "Test image"
@@ -255,7 +273,10 @@ class ImageControllerTest {
 
         val expectedImageMetadata = ImageMetadataModel(
             id = "test-id",
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = Instant.now(),
             location = null, // No location since only partial data
             description = "Test description"
@@ -296,7 +317,10 @@ class ImageControllerTest {
 
         val expectedImageMetadata = ImageMetadataModel(
             id = "test-id",
+            key = "test-key",
+            thumbnailKey = "test-thumbnail-key",
             createdTime = Instant.now(),
+            updatedTime = Instant.now(),
             imageGeneratedTime = null,
             location = GeoLocationModel(40.7128, -74.0060),
             description = null
