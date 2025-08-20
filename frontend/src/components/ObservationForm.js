@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 
 const ObservationForm = () => {
   const [formData, setFormData] = useState({
@@ -119,7 +119,7 @@ const ObservationForm = () => {
         properties: formData.properties
       };
 
-      const response = await axios.post('/observation', observationData, {
+      const response = await apiClient.post('/observation', observationData, {
         headers: {
           'Content-Type': 'application/json',
         },

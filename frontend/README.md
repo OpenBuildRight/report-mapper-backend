@@ -4,17 +4,20 @@ A React-based web interface for the Report Mapper API. This frontend provides a 
 
 ## Features
 
+- **OIDC Authentication**: Secure login with Keycloak Identity Provider
 - **Image Upload**: Drag-and-drop interface for uploading images with metadata
 - **Location Support**: Automatic geolocation detection and manual coordinate input
 - **Observation Creation**: Create observations with location, images, and custom properties
 - **Responsive Design**: Works on desktop and mobile devices
 - **Real-time Feedback**: Success/error messages and loading states
+- **Token Management**: Automatic token handling for API requests
 
 ## Prerequisites
 
 - Node.js (version 14 or higher)
 - npm or yarn
 - Running Report Mapper Backend API (on localhost:8080)
+- Running Keycloak Identity Provider (on localhost:9003)
 
 ## Installation
 
@@ -34,6 +37,18 @@ A React-based web interface for the Report Mapper API. This frontend provides a 
    ```
 
 The application will open in your browser at `http://localhost:3000`.
+
+## Authentication Setup
+
+Before using the application, you need to configure Keycloak to allow the frontend redirect URI:
+
+1. **Update Keycloak Configuration** (see `setup-keycloak.md` for detailed instructions):
+   - Add `http://localhost:3000` to the valid redirect URIs for the `test-client`
+   - You can do this via Terraform or the Keycloak Admin Console
+
+2. **Test Credentials**:
+   - Username: `alice`
+   - Password: `alice_password`
 
 ## Usage
 
@@ -67,6 +82,8 @@ The frontend communicates with the following API endpoints:
 - `GET /image/{id}` - Get image metadata
 - `GET /image/download/{id}` - Download images
 
+All API requests include Bearer token authentication using the OIDC access token.
+
 ## Development
 
 ### Project Structure
@@ -75,14 +92,23 @@ frontend/
 ├── public/
 │   └── index.html
 ├── src/
+│   ├── auth/
+│   │   ├── authConfig.js
+│   │   ├── AuthProvider.js
+│   │   └── useAuth.js
+│   ├── api/
+│   │   └── apiClient.js
 │   ├── components/
 │   │   ├── ImageUploadForm.js
-│   │   └── ObservationForm.js
+│   │   ├── ObservationForm.js
+│   │   ├── LoginPage.js
+│   │   └── Header.js
 │   ├── App.js
 │   ├── App.css
 │   ├── index.js
 │   └── index.css
 ├── package.json
+├── setup-keycloak.md
 └── README.md
 ```
 

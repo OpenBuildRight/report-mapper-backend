@@ -26,10 +26,20 @@ resource "keycloak_openid_client" "openid_client" {
   name                = "test client"
   enabled             = true
 
-  access_type         = "CONFIDENTIAL"
+  access_type         = "PUBLIC"
   valid_redirect_uris = [
     "http://localhost:8080/*",
     "http://127.0.0.1:8080/*",
+    "http://localhost:3000",
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3000/*",
+  ]
+
+  web_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "+"
   ]
 
   login_theme = "keycloak"

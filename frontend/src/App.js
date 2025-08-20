@@ -1,17 +1,37 @@
 import React, { useState } from 'react';
+import { useAuth } from './auth/useAuth';
+import Header from './components/Header';
+import LoginPage from './components/LoginPage';
 import ImageUploadForm from './components/ImageUploadForm';
 import ObservationForm from './components/ObservationForm';
+import DebugAuth from './components/DebugAuth';
 import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('upload');
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="App">
-      <header className="header">
-        <h1>Report Mapper</h1>
-        <p>Upload images and create observations with location data</p>
-      </header>
+      <DebugAuth />
+      <Header />
 
       <div className="container">
         <div className="tabs">

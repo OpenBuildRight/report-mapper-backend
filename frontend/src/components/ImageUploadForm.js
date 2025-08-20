@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { format } from 'date-fns';
 
 const ImageUploadForm = () => {
@@ -63,7 +63,7 @@ const ImageUploadForm = () => {
           formDataToSend.append('imageGeneratedTime', formData.imageGeneratedTime);
         }
 
-        const response = await axios.post('/image', formDataToSend, {
+        const response = await apiClient.post('/image', formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

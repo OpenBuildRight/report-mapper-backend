@@ -2,6 +2,8 @@ hibernate:
     hbm2ddl:
         auto: create-drop
     show_sql: true
+swagger:
+    authorization-url: http://localhost:9003/realms/my-realm/protocol/openid-connect/auth
 openbuildright:
     reportmapper:
         objectstore:
