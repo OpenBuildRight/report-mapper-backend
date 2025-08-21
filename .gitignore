@@ -46,3 +46,6 @@ build/
 
 ## NPM
 node_modules/
+
+*.log
+local

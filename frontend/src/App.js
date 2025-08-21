@@ -4,7 +4,6 @@ import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import ImageUploadForm from './components/ImageUploadForm';
 import ObservationForm from './components/ObservationForm';
-import DebugAuth from './components/DebugAuth';
 import './App.css';
 
 function App() {
@@ -30,7 +29,6 @@ function App() {
 
   return (
     <div className="App">
-      <DebugAuth />
       <Header />
 
       <div className="container">
