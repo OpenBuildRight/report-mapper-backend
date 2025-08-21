@@ -43,3 +43,9 @@ build/
 
 ## SDKMAN
 .sdkmanrc
+
+## NPM
+node_modules/
+
+*.log
+local
