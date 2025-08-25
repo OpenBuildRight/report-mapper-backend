@@ -7,11 +7,19 @@ export const authConfig = {
   scope: process.env.REACT_APP_OIDC_SCOPE || 'openid profile email',
   loadUserInfo: true,
   onSigninCallback: (user) => {
+    console.log('🔐 Sign in callback triggered:', user);
     // Store the access token for API calls
     localStorage.setItem('access_token', user.access_token);
   },
   onRemoveUser: () => {
+    console.log('🔐 Sign out callback triggered');
     // Clear the access token when user logs out
     localStorage.removeItem('access_token');
+  },
+  onSigninError: (error) => {
+    console.error('🔐 Sign in error:', error);
+  },
+  onSignoutError: (error) => {
+    console.error('🔐 Sign out error:', error);
   }
 };

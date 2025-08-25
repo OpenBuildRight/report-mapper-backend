@@ -1,8 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../auth/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
-  const { signinRedirect, isLoading } = useAuth();
+  const { signinRedirect, isLoading, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Check if user is authenticated and redirect if needed
+  useEffect(() => {
+    if (isAuthenticated) {
+      const pendingAction = localStorage.getItem('pendingAction');
+      if (pendingAction) {
+        // Clear the pending action and redirect to home
+        localStorage.removeItem('pendingAction');
+        navigate('/');
+      } else {
+        // No pending action, just go to home
+        navigate('/');
+      }
+    }
+  }, [isAuthenticated, navigate]);
 
   if (isLoading) {
     return (

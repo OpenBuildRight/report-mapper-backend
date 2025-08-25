@@ -7,21 +7,38 @@ export const useAuth = () => {
     return localStorage.getItem('access_token');
   };
 
+  const logout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('pendingAction');
+    if (auth.signoutRedirect) {
+      auth.signoutRedirect();
+    }
+  };
+
   // Check if user is authenticated - either by OIDC context or by having an access token
   const isAuthenticated = () => {
     const hasOidcAuth = auth.isAuthenticated;
     const hasToken = !!getAccessToken();
+    const hasUser = !!auth.user;
     
     console.log('🔍 Auth Debug:', {
       oidcAuthenticated: hasOidcAuth,
       hasToken: hasToken,
+      hasUser: hasUser,
       user: auth.user,
-      isLoading: auth.isLoading
+      isLoading: auth.isLoading,
+      authState: auth
     });
     
     // If OIDC says we're authenticated, we're authenticated
     if (hasOidcAuth) {
       console.log('✅ Authenticated via OIDC context');
+      return true;
+    }
+    
+    // If we have a user object, we're authenticated
+    if (hasUser) {
+      console.log('✅ Authenticated via user object');
       return true;
     }
     
@@ -36,9 +53,13 @@ export const useAuth = () => {
     return false;
   };
 
+  const isUserAuthenticated = isAuthenticated();
+
   return {
     ...auth,
     getAccessToken,
-    isAuthenticated: isAuthenticated()
+    logout,
+    isAuthenticated: isUserAuthenticated,
+    user: auth.user
   };
 };
