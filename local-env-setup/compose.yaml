@@ -28,3 +28,4 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: kc_admin_password
     ports:
       - "9003:8080"
+
