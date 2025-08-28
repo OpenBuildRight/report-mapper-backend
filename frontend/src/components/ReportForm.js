@@ -107,3 +107,4 @@ function ReportForm({ location, onSubmit, onCancel }) {
 }
 
 export default ReportForm;
+

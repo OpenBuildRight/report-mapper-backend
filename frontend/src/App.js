@@ -1,8 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './auth/useAuth';
+import Header from './components/Header';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
+import ObservationForm from "./components/ObservationForm";
 import './App.css';
 
 function App() {
@@ -24,11 +26,15 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Header />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/observation" element={<ObservationForm />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );

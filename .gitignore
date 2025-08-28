@@ -49,3 +49,5 @@ node_modules/
 
 *.log
 local
+*storybook.log
+storybook-static
