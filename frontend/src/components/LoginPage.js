@@ -9,14 +9,23 @@ const LoginPage = () => {
   // Check if user is authenticated and redirect if needed
   useEffect(() => {
     if (isAuthenticated) {
-      const pendingAction = localStorage.getItem('pendingAction');
-      if (pendingAction) {
-        // Clear the pending action and redirect to home
-        localStorage.removeItem('pendingAction');
-        navigate('/');
+      // Check for redirect after login
+      const redirectAfterLogin = localStorage.getItem('redirectAfterLogin');
+      if (redirectAfterLogin) {
+        // Clear the redirect and navigate to the intended destination
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectAfterLogin);
       } else {
-        // No pending action, just go to home
-        navigate('/');
+        // Check for pending action (legacy support)
+        const pendingAction = localStorage.getItem('pendingAction');
+        if (pendingAction) {
+          // Clear the pending action and redirect to home
+          localStorage.removeItem('pendingAction');
+          navigate('/');
+        } else {
+          // No redirect needed, just go to home
+          navigate('/');
+        }
       }
     }
   }, [isAuthenticated, navigate]);
