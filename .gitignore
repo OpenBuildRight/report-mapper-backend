@@ -51,3 +51,6 @@ node_modules/
 local
 *storybook.log
 storybook-static
+
+### Cursor Rules ###
+.cursor/

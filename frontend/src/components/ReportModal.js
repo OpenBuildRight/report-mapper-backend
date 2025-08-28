@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../auth/useAuth';
 import { useNavigate } from 'react-router-dom';
-import ReportForm from './ReportForm';
+import ReportFormContainer from '../containers/ReportFormContainer';
 
 const ReportModal = ({ 
   isOpen, 
@@ -31,9 +31,9 @@ const ReportModal = ({
       <div className="modal">
         <h2>Report Issue</h2>
         {isAuthenticated ? (
-          <ReportForm
+          <ReportFormContainer
             location={selectedLocation}
-            onSubmit={onSubmit}
+            onSuccess={onSubmit}
             onCancel={onClose}
           />
         ) : (

@@ -4,7 +4,8 @@ import { useAuth } from './auth/useAuth';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
-import ObservationForm from "./components/ObservationForm";
+import ObservationFormContainer from './containers/ObservationFormContainer';
+import ImageUploadFormContainer from './containers/ImageUploadFormContainer';
 import './App.css';
 
 function App() {
@@ -30,7 +31,8 @@ function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/observation" element={<ObservationForm />} />
+            <Route path="/observation" element={<ObservationFormContainer />} />
+            <Route path="/upload" element={<ImageUploadFormContainer />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
