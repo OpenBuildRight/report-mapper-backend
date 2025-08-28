@@ -14,6 +14,11 @@ module.exports = {
   // A map from regular expressions to module names that allow to stub out resources
   moduleNameMapping: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Handle ES modules
+    '^axios$': require.resolve('axios'),
+    '^react-leaflet$': require.resolve('react-leaflet'),
+    // Mock CSS imports
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
@@ -44,6 +49,11 @@ module.exports = {
   transform: {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
+  
+  // Transform ES modules in node_modules
+  transformIgnorePatterns: [
+    'node_modules/(?!(axios|react-leaflet|leaflet|@remix-run)/)',
+  ],
   
   // Indicates whether the coverage information should be collected while executing the test
   collectCoverage: false,

@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './auth/useAuth';
-import Header from './components/Header';
-import HomePage from './components/HomePage';
+import HeaderContainer from './containers/HeaderContainer';
+import HomePageContainer from './containers/HomePageContainer';
 import LoginPage from './components/LoginPage';
 import ObservationFormContainer from './containers/ObservationFormContainer';
 import ImageUploadFormContainer from './containers/ImageUploadFormContainer';
@@ -27,10 +27,10 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <Header />
+        <HeaderContainer />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<HomePageContainer />} />
             <Route path="/observation" element={<ObservationFormContainer />} />
             <Route path="/upload" element={<ImageUploadFormContainer />} />
             <Route path="/login" element={<LoginPage />} />
