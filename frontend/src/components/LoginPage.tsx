@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '../auth/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-const LoginPage = () => {
+const LoginPage: React.FC = () => {
   const { signinRedirect, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -82,8 +82,8 @@ const LoginPage = () => {
             width: '100%',
             transition: 'background 0.3s ease'
           }}
-          onMouseOver={(e) => e.target.style.background = '#2980b9'}
-          onMouseOut={(e) => e.target.style.background = '#3498db'}
+          onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = '#2980b9'}
+          onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = '#3498db'}
         >
           Sign In
         </button>

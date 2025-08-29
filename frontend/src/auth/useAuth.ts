@@ -1,14 +1,32 @@
 import { useAuth as useOidcAuth } from 'react-oidc-context';
 import { useMemo } from 'react';
 
-export const useAuth = () => {
+export interface AuthUser {
+  access_token?: string;
+  name?: string;
+  email?: string;
+  sub?: string;
+  [key: string]: any;
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: AuthUser | null;
+  getAccessToken: () => string | null;
+  logout: () => void;
+  signinRedirect: () => Promise<void>;
+  signoutRedirect: () => Promise<void>;
+}
+
+export const useAuth = (): AuthState => {
   const auth = useOidcAuth();
   
-  const getAccessToken = () => {
+  const getAccessToken = (): string | null => {
     return localStorage.getItem('access_token');
   };
 
-  const logout = () => {
+  const logout = (): void => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('pendingAction');
     if (auth.signoutRedirect) {
@@ -17,7 +35,7 @@ export const useAuth = () => {
   };
 
   // Check if user is authenticated - either by OIDC context or by having an access token
-  const isAuthenticated = useMemo(() => {
+  const isAuthenticated = useMemo((): boolean => {
     const hasOidcAuth = auth.isAuthenticated;
     const hasToken = !!getAccessToken();
     const hasUser = !!auth.user;
@@ -55,10 +73,12 @@ export const useAuth = () => {
   }, [auth.isAuthenticated, auth.user, auth.isLoading]);
 
   return {
-    ...auth,
+    isAuthenticated,
+    isLoading: auth.isLoading,
+    user: auth.user as AuthUser | null,
     getAccessToken,
     logout,
-    isAuthenticated,
-    user: auth.user
+    signinRedirect: auth.signinRedirect,
+    signoutRedirect: auth.signoutRedirect
   };
 };

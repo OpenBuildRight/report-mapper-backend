@@ -7,18 +7,29 @@ import LoginPage from './components/LoginPage';
 import ObservationFormContainer from './containers/ObservationFormContainer';
 import './App.css';
 
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  isAuthenticated: boolean;
+  redirectTo: string;
+}
+
 // Protected Route component that redirects to login and back
-const ProtectedRoute = ({ children, isAuthenticated, redirectTo }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, isAuthenticated, redirectTo }) => {
   if (!isAuthenticated) {
     // Store the intended destination for after login
     localStorage.setItem('redirectAfterLogin', redirectTo);
     return <Navigate to="/login" replace />;
   }
-  return children;
+  return <>{children}</>;
 };
 
-function App() {
+const App: React.FC = () => {
   const { isLoading, isAuthenticated } = useAuth();
+
+  const handleObservationSuccess = (result: any) => {
+    console.log('Observation created successfully:', result);
+    // You can add navigation or other success handling here
+  };
 
   if (isLoading) {
     return (
@@ -44,7 +55,7 @@ function App() {
               path="/observation" 
               element={
                 <ProtectedRoute isAuthenticated={isAuthenticated} redirectTo="/observation">
-                  <ObservationFormContainer />
+                  <ObservationFormContainer onSuccess={handleObservationSuccess} />
                 </ProtectedRoute>
               } 
             />
@@ -55,6 +66,6 @@ function App() {
       </div>
     </Router>
   );
-}
+};
 
 export default App;
