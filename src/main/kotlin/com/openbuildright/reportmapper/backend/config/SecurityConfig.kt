@@ -1,6 +1,5 @@
 package com.openbuildright.reportmapper.backend.config
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -13,22 +12,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
-
-    @Value("\${cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}")
-    private lateinit var allowedOrigins: String
-
-    @Value("\${cors.allowed-methods:GET,POST,PUT,DELETE,OPTIONS}")
-    private lateinit var allowedMethods: String
-
-    @Value("\${cors.allowed-headers:*}")
-    private lateinit var allowedHeaders: String
-
-    @Value("\${cors.allow-credentials:true}")
-    private var allowCredentials: Boolean = true
-
-    @Value("\${cors.max-age:3600}")
-    private var maxAge: Long = 3600L
+class SecurityConfig(
+    private val corsConfig: CorsConfig
+) {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -48,11 +34,11 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOriginPatterns = allowedOrigins.split(",").map { it.trim() }
-        configuration.allowedMethods = allowedMethods.split(",").map { it.trim() }
-        configuration.allowedHeaders = if (allowedHeaders == "*") listOf("*") else allowedHeaders.split(",").map { it.trim() }
-        configuration.allowCredentials = allowCredentials
-        configuration.maxAge = maxAge
+        configuration.allowedOriginPatterns = corsConfig.allowedOrigins
+        configuration.allowedMethods = corsConfig.allowedMethods
+        configuration.allowedHeaders = corsConfig.allowedHeaders
+        configuration.allowCredentials = corsConfig.allowCredentials
+        configuration.maxAge = corsConfig.maxAge
         
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
