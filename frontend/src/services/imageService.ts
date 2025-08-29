@@ -24,8 +24,8 @@ class ImageUrlService {
       // Published images are publicly accessible
       return `${baseUrl}/api/image/published/${thumbnail ? 'thumbnail-' : ''}${imageId}`;
     } else {
-      // Draft images require authentication
-      return `${baseUrl}/api/image/draft/${thumbnail ? 'thumbnail-' : ''}${imageId}`;
+      // Draft images require authentication - use smart endpoint
+      return `${baseUrl}/api/image/download/${thumbnail ? 'thumbnail-' : ''}${imageId}`;
     }
   }
 
@@ -51,7 +51,8 @@ class ImageUrlService {
       throw new Error('Authentication required for draft images');
     }
 
-    return `${baseUrl}/api/image/draft/${thumbnail ? 'thumbnail-' : ''}${imageId}`;
+    // Use smart endpoint that handles authentication automatically
+    return `${baseUrl}/api/image/download/${thumbnail ? 'thumbnail-' : ''}${imageId}`;
   }
 }
 
@@ -73,7 +74,7 @@ export const useImageUrl = () => {
       throw new Error('Authentication required for draft images');
     }
 
-    // Draft images for authenticated users
+    // Use smart endpoint that handles authentication automatically
     return ImageUrlService.getImageUrl(imageId, thumbnail, false);
   };
 

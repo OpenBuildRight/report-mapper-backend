@@ -77,6 +77,27 @@ class ObservationService(
         return observation.get().toObservationModel()
     }
 
+    fun deleteObservation(id: String) {
+        val observation: Optional<ObservationDocument> = observationRepository.findById(id)
+        if (observation.isEmpty) {
+            throw NotFoundException(String.format("Observation %s not found", id))
+        }
+        observationRepository.deleteById(id)
+    }
+
+    fun publishObservation(id: String, enabled: Boolean): ObservationModel {
+        val observationResponse: Optional<ObservationDocument?> = observationRepository.findById(id)
+        if (observationResponse.isEmpty) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Observation ${id} not found.")
+        }
+        val observation: ObservationDocument = observationResponse.get()
+        val now: Instant = Instant.now()
+        observation.updatedTime = now
+        observation.enabled = enabled
+        val observationPutResponse: ObservationDocument = observationRepository.save(observation)
+        return observationPutResponse.toObservationModel()
+    }
+
     /**
      * Get all observations for a specific user
      */

@@ -1,42 +1,58 @@
 import { AxiosInstance } from 'axios';
 
-// GeoLocation interface matching backend GeoLocationDto
 export interface GeoLocation {
   latitude: number;
   longitude: number;
 }
 
-// ObservationData interface matching backend ObservationCreateDto
 export interface ObservationData {
   title: string;
   description: string;
-  observationTime: string; // Will be converted to ISO string before sending
+  observationTime: string;
   location: GeoLocation;
-  imageIds: string[]; // Will be converted to Set on backend
-  properties: Record<string, string>; // Changed from any to string to match backend
+  imageIds: string[];
+  properties: Record<string, string>;
 }
 
-// Observation interface matching backend ObservationDto
 export interface Observation {
   id: string;
   title: string;
   description: string;
-  observationTime: string; // ISO string from backend
-  createdTime: string; // ISO string from backend
-  updatedTime: string; // ISO string from backend
+  observationTime: string;
   location: GeoLocation;
-  imageIds: string[]; // Array from backend
-  properties: Record<string, string>; // Changed from any to string to match backend
-  enabled: boolean; // Added to match backend
+  imageIds: string[];
+  properties: Record<string, string>;
+  enabled: boolean;
+  createdTime: string;
+  updatedTime: string;
 }
 
-// Image interface matching backend ImageDto
 export interface Image {
   id: string;
-  createdTime: string; // ISO string from backend
-  imageGeneratedTime?: string; // ISO string from backend, optional
-  location?: GeoLocation; // Optional location from backend
-  description?: string; // Optional description from backend
+  createdTime: string;
+  imageGeneratedTime?: string;
+  location?: GeoLocation;
+  description?: string;
+}
+
+export enum AccessLevel {
+  PUBLIC = 'PUBLIC',
+  OWNER = 'OWNER',
+  MODERATOR = 'MODERATOR',
+  DENIED = 'DENIED'
+}
+
+export interface AccessInfo {
+  accessLevel: AccessLevel;
+  canEdit: boolean;
+  canPublish: boolean;
+  canDelete: boolean;
+}
+
+export interface SecureResponse<T> {
+  data: T | null;
+  accessInfo: AccessInfo;
+  message?: string;
 }
 
 class ObservationService {
@@ -56,13 +72,18 @@ class ObservationService {
     return response.data;
   }
 
-  async getObservation(id: string): Promise<Observation> {
+  async getObservation(id: string): Promise<SecureResponse<Observation>> {
     const response = await this.apiClient.get(`/observation/${id}`);
     return response.data;
   }
 
-  async getDraftObservation(id: string): Promise<Observation> {
-    const response = await this.apiClient.get(`/observation/draft/${id}`);
+  async deleteObservation(id: string): Promise<{ message: string }> {
+    const response = await this.apiClient.delete(`/observation/${id}`);
+    return response.data;
+  }
+
+  async publishObservation(id: string, enabled: boolean): Promise<Observation> {
+    const response = await this.apiClient.patch(`/observation/${id}/publish?enabled=${enabled}`);
     return response.data;
   }
 
@@ -76,13 +97,14 @@ class ObservationService {
     return response.data;
   }
 
-  async getAllObservations(): Promise<Observation[]> {
-    const response = await this.apiClient.get('/observation');
+  async getObservationsForModeration(): Promise<Observation[]> {
+    const response = await this.apiClient.get('/observation/moderation');
     return response.data;
   }
 
-  async getAvailableImages(): Promise<Image[]> {
-    const response = await this.apiClient.get('/images');
+  // Legacy method for backward compatibility
+  async getAllObservations(): Promise<Observation[]> {
+    const response = await this.apiClient.get('/observation');
     return response.data;
   }
 }

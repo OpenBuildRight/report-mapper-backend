@@ -3,23 +3,22 @@ package com.openbuildright.reportmapper.backend.web.controller
 import com.openbuildright.reportmapper.backend.model.GeoLocationModel
 import com.openbuildright.reportmapper.backend.model.ImageMetadataCreateModel
 import com.openbuildright.reportmapper.backend.model.ImageMetadataModel
-import com.openbuildright.reportmapper.backend.security.DraftAccess
+import com.openbuildright.reportmapper.backend.security.ObservationAccessService
 import com.openbuildright.reportmapper.backend.service.ImageService
 import com.openbuildright.reportmapper.backend.web.InvalidImageFile
 import com.openbuildright.reportmapper.backend.web.dto.ImageCreateDto
 import com.openbuildright.reportmapper.backend.web.dto.ImageDto
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.repository.query.Param
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import javax.print.attribute.standard.Media
 
 @RestController
 @RequestMapping("/image")
 class ImageController(
-    @param:Autowired val imageService: ImageService
+    @param:Autowired val imageService: ImageService,
+    @param:Autowired val observationAccessService: ObservationAccessService
 ) {
     @PostMapping(consumes = arrayOf("multipart/form-data"))
     fun createImage(
@@ -51,73 +50,90 @@ class ImageController(
         return ImageDto.fromImageModel(imageService.getImageMetadata(id))
     }
 
-    // Draft image endpoints - require authentication and ownership
+    /**
+     * Smart image download endpoint - handles both draft and published images
+     * with appropriate access control
+     */
+    @GetMapping("/download/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    fun downloadImage(
+        @PathVariable imageId: String, 
+        @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean,
+        authentication: Authentication?
+    ): ResponseEntity<ByteArray> {
+        return try {
+            // Check if image is published
+            if (observationAccessService.isResourcePublished(imageId)) {
+                // Published image - public access
+                val imageData = imageService.getImage(imageId, thumbnail).image
+                ResponseEntity.ok(imageData)
+            } else {
+                // Draft image - check access
+                if (authentication != null && observationAccessService.canAccessDraftResource(imageId, authentication)) {
+                    val imageData = imageService.getImage(imageId, thumbnail).image
+                    ResponseEntity.ok(imageData)
+                } else {
+                    ResponseEntity.status(403).build()
+                }
+            }
+        } catch (e: Exception) {
+            ResponseEntity.status(404).build()
+        }
+    }
+
+    /**
+     * Smart thumbnail download endpoint - handles both draft and published images
+     * with appropriate access control
+     */
+    @GetMapping("/download/thumbnail-{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    fun downloadThumbnail(
+        @PathVariable imageId: String,
+        authentication: Authentication?
+    ): ResponseEntity<ByteArray> {
+        return downloadImage(imageId, true, authentication)
+    }
+
+    // Legacy endpoints for backward compatibility
     @GetMapping("/draft/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    @DraftAccess
     fun downloadDraftImage(
         @PathVariable imageId: String, 
-        @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean
+        @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean,
+        authentication: Authentication?
     ): ResponseEntity<ByteArray> {
-        val imageData = imageService.getImage(imageId, thumbnail).image
-        return ResponseEntity.ok(imageData)
+        if (authentication == null) {
+            return ResponseEntity.status(401).build()
+        }
+        
+        return if (observationAccessService.canAccessDraftResource(imageId, authentication)) {
+            val imageData = imageService.getImage(imageId, thumbnail).image
+            ResponseEntity.ok(imageData)
+        } else {
+            ResponseEntity.status(403).build()
+        }
     }
 
     @GetMapping("/draft/thumbnail-{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    @DraftAccess
-    fun downloadDraftThumbnail(@PathVariable imageId: String): ResponseEntity<ByteArray> {
-        val imageData = imageService.getImage(imageId, true).image
-        return ResponseEntity.ok(imageData)
+    fun downloadDraftThumbnail(
+        @PathVariable imageId: String,
+        authentication: Authentication?
+    ): ResponseEntity<ByteArray> {
+        return downloadDraftImage(imageId, true, authentication)
     }
 
-    // Published image endpoints - public access
     @GetMapping("/published/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
     fun downloadPublishedImage(
         @PathVariable imageId: String, 
         @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean
     ): ResponseEntity<ByteArray> {
-        // Check if image is part of a published observation
-        if (!imageService.isImagePublished(imageId)) {
-            return ResponseEntity.status(404).build()
+        return if (observationAccessService.isResourcePublished(imageId)) {
+            val imageData = imageService.getImage(imageId, thumbnail).image
+            ResponseEntity.ok(imageData)
+        } else {
+            ResponseEntity.status(404).build()
         }
-        
-        val imageData = imageService.getImage(imageId, thumbnail).image
-        return ResponseEntity.ok(imageData)
     }
 
     @GetMapping("/published/thumbnail-{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
     fun downloadPublishedThumbnail(@PathVariable imageId: String): ResponseEntity<ByteArray> {
-        // Check if image is part of a published observation
-        if (!imageService.isImagePublished(imageId)) {
-            return ResponseEntity.status(404).build()
-        }
-        
-        val imageData = imageService.getImage(imageId, true).image
-        return ResponseEntity.ok(imageData)
-    }
-
-    // Legacy endpoints - smart routing based on image status
-    @GetMapping("/download/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    fun downloadImage(
-        @PathVariable imageId: String, 
-        @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean
-    ): ResponseEntity<ByteArray> {
-        return if (imageService.isImagePublished(imageId)) {
-            // Published image - use public endpoint
-            downloadPublishedImage(imageId, thumbnail)
-        } else {
-            // Draft image - use draft endpoint (will be protected by @DraftAccess)
-            downloadDraftImage(imageId, thumbnail)
-        }
-    }
-
-    @GetMapping("/download/thumbnail-{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    fun downloadThumbnail(@PathVariable imageId: String): ResponseEntity<ByteArray> {
-        return if (imageService.isImagePublished(imageId)) {
-            // Published image - use public endpoint
-            downloadPublishedThumbnail(imageId)
-        } else {
-            // Draft image - use draft endpoint (will be protected by @DraftAccess)
-            downloadDraftThumbnail(imageId)
-        }
+        return downloadPublishedImage(imageId, true)
     }
 }
