@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean
 
 @Configuration
 class OpenAPISecurityConfig {
-    @Value("\${swagger.authorization-url}")
+    @Value("\${swagger.authorization-url:http://localhost:9003/realms/my-realm/protocol/openid-connect/auth}")
     var authorizationUrl: String? = null
 
     @Bean
@@ -25,8 +25,8 @@ class OpenAPISecurityConfig {
         )
             .addSecurityItem(SecurityRequirement().addList(OAUTH_SCHEME_NAME))
             .info(
-                Info().title("Todos Management Service")
-                    .description("A service providing todos.")
+                Info().title("Report Mapper Backend API")
+                    .description("A service for managing observations and images.")
                     .version("1.0")
             )
     }

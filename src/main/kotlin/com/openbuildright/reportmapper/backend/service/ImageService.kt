@@ -19,7 +19,6 @@ import java.util.*
 class ImageService(
     val imageRepository: ImageMetadataDocumentRepository,
     val imageObjectRepository: ImageObjectRepository,
-    val observationService: ObservationService,
     val maxWidth: Int,
     val maxHeight: Int,
     val normalizeImage: Boolean,
@@ -85,21 +84,5 @@ class ImageService(
 
     fun listImagesMetadata(ids: Set<String>): Set<ImageMetadataModel> {
         return ids.parallelStream().map { getImageMetadata(it) }.toList().toSet()
-    }
-
-    /**
-     * Check if an image is published (part of an enabled observation)
-     */
-    fun isImagePublished(imageId: String): Boolean {
-        return try {
-            // Check if the image is part of any enabled (published) observation
-            val observations = observationService.getAllObservations()
-            observations.any { observation ->
-                observation.enabled && observation.imageIds.contains(imageId)
-            }
-        } catch (e: Exception) {
-            // If there's any error checking publication status, consider it not published
-            false
-        }
     }
 }

@@ -24,6 +24,7 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers(
+                    "/actuator/health",  // Allow health checks without authentication
                     "/swagger-ui/*",
                     "/v3/api-docs",
                     "/v3/api-docs/*",

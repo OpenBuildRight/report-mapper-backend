@@ -28,13 +28,11 @@ class ImageConfig() {
     fun imageService(
         @Autowired imageRepository: ImageMetadataDocumentRepository,
         @Autowired imageObjectRepository: ImageObjectRepository,
-        @Autowired observationService: com.openbuildright.reportmapper.backend.service.ObservationService,
         @Autowired imageServiceConfigProperties: ImageServiceConfigProperties
     ) : ImageService {
         return ImageService(
             imageRepository,
             imageObjectRepository,
-            observationService,
             maxWidth = imageServiceConfigProperties.maxWidth,
             maxHeight = imageServiceConfigProperties.maxHeight,
             normalizeImage = imageServiceConfigProperties.normalizeImage,

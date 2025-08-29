@@ -7,6 +7,9 @@ import com.openbuildright.reportmapper.backend.model.GeoLocationModel
 import com.openbuildright.reportmapper.backend.model.ImageMetadataModel
 import com.openbuildright.reportmapper.backend.model.ObservationCreateModel
 import com.openbuildright.reportmapper.backend.model.ObservationModel
+import com.openbuildright.reportmapper.backend.security.ObjectType
+import com.openbuildright.reportmapper.backend.security.PermissionGranteeType
+import com.openbuildright.reportmapper.backend.security.PermissionService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -22,15 +25,18 @@ class ObservationServiceTest {
 
     private lateinit var observationRepository: ObservationDocumentRepository
     private lateinit var imageService: ImageService
+    private lateinit var permissionService: PermissionService
     private lateinit var observationService: ObservationService
 
     @BeforeEach
     fun setUp() {
         observationRepository = mock()
         imageService = mock()
+        permissionService = mock()
         observationService = ObservationService(
             observationRepository = observationRepository,
-            imageService = imageService
+            imageService = imageService,
+            permissionService = permissionService
         )
     }
 
@@ -65,12 +71,16 @@ class ObservationServiceTest {
         whenever(observationRepository.save(any())).thenReturn(savedDocument)
         whenever(savedDocument.toObservationModel()).thenReturn(mock<ObservationModel>())
 
+        // Mock permission service calls
+        whenever(permissionService.grantOwnership(any(), any(), any())).thenReturn(mock())
+
         // When
         val result = observationService.createObservation(observationModel)
 
         // Then
         verify(imageService).listImagesMetadata(imageIds)
         verify(observationRepository).save(any())
+        verify(permissionService).grantOwnership(ObjectType.OBSERVATION, any(), reporterId)
         assertNotNull(result)
     }
 
@@ -101,12 +111,16 @@ class ObservationServiceTest {
         whenever(observationRepository.save(any())).thenReturn(savedDocument)
         whenever(savedDocument.toObservationModel()).thenReturn(mock<ObservationModel>())
 
+        // Mock permission service calls
+        whenever(permissionService.grantOwnership(any(), any(), any())).thenReturn(mock())
+
         // When
         val result = observationService.createObservation(observationModel)
 
         // Then
         verify(imageService).listImagesMetadata(imageIds)
         verify(observationRepository).save(any())
+        verify(permissionService).grantOwnership(ObjectType.OBSERVATION, any(), reporterId)
         assertNotNull(result)
     }
 

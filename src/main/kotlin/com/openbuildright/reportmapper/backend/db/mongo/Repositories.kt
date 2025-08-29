@@ -17,7 +17,7 @@ interface ObservationDocumentRepository : MongoRepository<ObservationDocument, S
 
 @Repository
 interface ImageMetadataDocumentRepository : MongoRepository<ImageMetadataDocument, String> {
-    fun findByObservationId(observationId: String): List<ImageMetadataDocument>
+    // No custom query methods needed - images are referenced by ID in observations
 }
 
 @Repository

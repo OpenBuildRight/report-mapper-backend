@@ -10,6 +10,7 @@ import com.openbuildright.reportmapper.backend.web.dto.ObservationDto
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
+import org.springframework.security.core.Authentication
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -18,11 +19,14 @@ class ObservationControllerTest {
 
     private lateinit var observationService: ObservationService
     private lateinit var observationController: ObservationController
+    private lateinit var authentication: Authentication
 
     @BeforeEach
     fun setUp() {
         observationService = mock()
         observationController = ObservationController(observationService)
+        authentication = mock()
+        whenever(authentication.name).thenReturn("test-user")
     }
 
     @Test
@@ -61,7 +65,7 @@ class ObservationControllerTest {
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
 
         // When
-        val result = observationController.createObservation(dto)
+        val result = observationController.createObservation(dto, authentication)
 
         // Then
         assertNotNull(result)
@@ -109,7 +113,7 @@ class ObservationControllerTest {
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
 
         // When
-        val result = observationController.createObservation(dto)
+        val result = observationController.createObservation(dto, authentication)
 
         // Then
         assertNotNull(result)
@@ -154,7 +158,7 @@ class ObservationControllerTest {
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
 
         // When
-        val result = observationController.createObservation(dto)
+        val result = observationController.createObservation(dto, authentication)
 
         // Then
         assertNotNull(result)
@@ -200,7 +204,7 @@ class ObservationControllerTest {
         whenever(observationService.updateObservation(eq(observationId), any())).thenReturn(expectedObservationModel)
 
         // When
-        val result = observationController.updateObservation(observationId, dto)
+        val result = observationController.updateObservation(observationId, dto, authentication)
 
         // Then
         assertNotNull(result)
@@ -214,33 +218,42 @@ class ObservationControllerTest {
     }
 
     @Test
-    fun getObservationShouldReturnObservation() {
+    fun getObservationShouldReturnObservationDto() {
         // Given
         val observationId = "observation123"
+        val observationTime = Instant.now()
+        val location = GeoLocationModel(latitude = 40.7128, longitude = -74.0060)
+        val imageIds = setOf("image1", "image2")
+        val properties = mapOf("key1" to "value1")
+        val description = "Test observation"
+        val title = "Test Observation"
+
         val expectedObservationModel = ObservationModel(
             id = observationId,
-            observationTime = Instant.now(),
+            observationTime = observationTime,
             createdTime = Instant.now(),
             updatedTime = Instant.now(),
-            location = GeoLocationModel(40.7128, -74.0060),
-            imageIds = setOf("image1"),
-            properties = mapOf("key1" to "value1"),
+            location = location,
+            imageIds = imageIds,
+            properties = properties,
             enabled = true,
-            description = "Test observation",
-            title = "Test Observation",
+            description = description,
+            title = title,
             reporterId = "test-reporter-id"
         )
 
         whenever(observationService.getObservation(observationId)).thenReturn(expectedObservationModel)
 
         // When
-        val result = observationController.getObservation(observationId)
+        val result = observationController.getObservation(observationId, authentication)
 
         // Then
         assertNotNull(result)
-        assertEquals(observationId, result.id)
-        assertEquals("Test observation", result.description)
-        assertEquals("Test Observation", result.title)
+        assertEquals(200, result.statusCodeValue)
+        assertNotNull(result.body)
+        assertEquals(observationId, result.body?.data?.id)
+        assertEquals("Test observation", result.body?.data?.description)
+        assertEquals("Test Observation", result.body?.data?.title)
         verify(observationService).getObservation(observationId)
     }
 
@@ -280,7 +293,7 @@ class ObservationControllerTest {
         whenever(observationService.createObservation(any())).thenReturn(expectedObservationModel)
 
         // When
-        val result = observationController.createObservation(dto)
+        val result = observationController.createObservation(dto, authentication)
 
         // Then
         assertNotNull(result)
@@ -326,7 +339,7 @@ class ObservationControllerTest {
         whenever(observationService.updateObservation(eq(observationId), any())).thenReturn(expectedObservationModel)
 
         // When
-        val result = observationController.updateObservation(observationId, dto)
+        val result = observationController.updateObservation(observationId, dto, authentication)
 
         // Then
         assertNotNull(result)

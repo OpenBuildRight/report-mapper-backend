@@ -3,7 +3,9 @@ package com.openbuildright.reportmapper.backend.web.controller
 import com.openbuildright.reportmapper.backend.model.GeoLocationModel
 import com.openbuildright.reportmapper.backend.model.ImageMetadataCreateModel
 import com.openbuildright.reportmapper.backend.model.ImageMetadataModel
-import com.openbuildright.reportmapper.backend.security.ObservationAccessService
+import com.openbuildright.reportmapper.backend.security.ObjectType
+import com.openbuildright.reportmapper.backend.security.Permission
+import com.openbuildright.reportmapper.backend.security.PermissionService
 import com.openbuildright.reportmapper.backend.service.ImageService
 import com.openbuildright.reportmapper.backend.web.InvalidImageFile
 import com.openbuildright.reportmapper.backend.web.dto.ImageCreateDto
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/image")
 class ImageController(
     @param:Autowired val imageService: ImageService,
-    @param:Autowired val observationAccessService: ObservationAccessService
+    @param:Autowired val permissionService: PermissionService
 ) {
     @PostMapping(consumes = arrayOf("multipart/form-data"))
     fun createImage(
@@ -61,19 +63,12 @@ class ImageController(
         authentication: Authentication?
     ): ResponseEntity<ByteArray> {
         return try {
-            // Check if image is published
-            if (observationAccessService.isResourcePublished(imageId)) {
-                // Published image - public access
+            // Check if user has read permission on this image
+            if (permissionService.hasPermission(ObjectType.IMAGE, imageId, Permission.READ, authentication)) {
                 val imageData = imageService.getImage(imageId, thumbnail).image
                 ResponseEntity.ok(imageData)
             } else {
-                // Draft image - check access
-                if (authentication != null && observationAccessService.canAccessDraftResource(imageId, authentication)) {
-                    val imageData = imageService.getImage(imageId, thumbnail).image
-                    ResponseEntity.ok(imageData)
-                } else {
-                    ResponseEntity.status(403).build()
-                }
+                ResponseEntity.status(403).build()
             }
         } catch (e: Exception) {
             ResponseEntity.status(404).build()
@@ -103,7 +98,7 @@ class ImageController(
             return ResponseEntity.status(401).build()
         }
         
-        return if (observationAccessService.canAccessDraftResource(imageId, authentication)) {
+        return if (permissionService.hasPermission(ObjectType.IMAGE, imageId, Permission.READ, authentication)) {
             val imageData = imageService.getImage(imageId, thumbnail).image
             ResponseEntity.ok(imageData)
         } else {
@@ -124,7 +119,7 @@ class ImageController(
         @PathVariable imageId: String, 
         @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean
     ): ResponseEntity<ByteArray> {
-        return if (observationAccessService.isResourcePublished(imageId)) {
+        return if (permissionService.hasPermission(ObjectType.IMAGE, imageId, Permission.READ, null)) {
             val imageData = imageService.getImage(imageId, thumbnail).image
             ResponseEntity.ok(imageData)
         } else {

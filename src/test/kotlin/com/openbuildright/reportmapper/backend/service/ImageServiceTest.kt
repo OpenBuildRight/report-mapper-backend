@@ -23,6 +23,7 @@ class ImageServiceTest {
 
     private lateinit var imageRepository: ImageMetadataDocumentRepository
     private lateinit var imageObjectRepository: ImageObjectRepository
+    private lateinit var observationService: ObservationService
     private lateinit var imageService: ImageService
 
     private val maxWidth = 1920
@@ -35,6 +36,7 @@ class ImageServiceTest {
     fun setUp() {
         imageRepository = mock()
         imageObjectRepository = mock()
+        observationService = mock()
         imageService = ImageService(
             imageRepository = imageRepository,
             imageObjectRepository = imageObjectRepository,
