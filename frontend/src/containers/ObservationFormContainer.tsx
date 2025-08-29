@@ -5,7 +5,11 @@ import ObservationService from '../services/observationService';
 import ImageUploadService from '../services/imageUploadService';
 import apiClient from '../api/apiClient';
 
-const ObservationFormContainer = ({ onSuccess }) => {
+interface ObservationFormContainerProps {
+  onSuccess?: (result: any) => void;
+}
+
+const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onSuccess }) => {
   // Create service instances
   const observationService = React.useMemo(() => new ObservationService(apiClient), []);
   const uploadService = React.useMemo(() => new ImageUploadService(apiClient), []);

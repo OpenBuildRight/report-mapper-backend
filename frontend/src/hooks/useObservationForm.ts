@@ -1,10 +1,55 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../auth/useAuth';
+import ObservationService, { ObservationData, Image } from '../services/observationService';
+import ImageUploadService, { UploadedImage } from '../services/imageUploadService';
 
-export const useObservationForm = (observationService, uploadService) => {
+export interface FormData {
+  title: string;
+  description: string;
+  observationTime: string;
+  latitude: string;
+  longitude: string;
+  imageIds: string[];
+  properties: Record<string, any>;
+}
+
+export interface Message {
+  type: 'success' | 'error' | 'info';
+  text: string;
+}
+
+export interface UseObservationFormReturn {
+  // State
+  formData: FormData;
+  availableImages: Image[];
+  uploadedImages: File[];
+  uploading: boolean;
+  loading: boolean;
+  message: Message | null;
+  propertyKey: string;
+  propertyValue: string;
+  
+  // Actions
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleImageSelection: (imageId: string) => void;
+  handleFileSelect: (files: File[]) => void;
+  handleUploadImages: () => Promise<UploadedImage[] | null>;
+  addProperty: () => void;
+  removeProperty: (key: string) => void;
+  getCurrentLocation: () => void;
+  submitObservation: () => Promise<any>;
+  clearMessage: () => void;
+  setPropertyKey: (value: string) => void;
+  setPropertyValue: (value: string) => void;
+}
+
+export const useObservationForm = (
+  observationService: ObservationService, 
+  uploadService: ImageUploadService
+): UseObservationFormReturn => {
   const { isAuthenticated } = useAuth();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
     observationTime: '',
@@ -14,13 +59,13 @@ export const useObservationForm = (observationService, uploadService) => {
     properties: {}
   });
   
-  const [availableImages, setAvailableImages] = useState([]);
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [propertyKey, setPropertyKey] = useState('');
-  const [propertyValue, setPropertyValue] = useState('');
+  const [availableImages, setAvailableImages] = useState<Image[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [message, setMessage] = useState<Message | null>(null);
+  const [propertyKey, setPropertyKey] = useState<string>('');
+  const [propertyValue, setPropertyValue] = useState<string>('');
 
   // Load available images only if authenticated
   useEffect(() => {
@@ -49,7 +94,7 @@ export const useObservationForm = (observationService, uploadService) => {
     loadImages();
   }, [observationService, isAuthenticated]);
 
-  const handleInputChange = useCallback((e) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -57,7 +102,7 @@ export const useObservationForm = (observationService, uploadService) => {
     }));
   }, []);
 
-  const handleImageSelection = useCallback((imageId) => {
+  const handleImageSelection = useCallback((imageId: string) => {
     setFormData(prev => ({
       ...prev,
       imageIds: prev.imageIds.includes(imageId)
@@ -66,11 +111,11 @@ export const useObservationForm = (observationService, uploadService) => {
     }));
   }, []);
 
-  const handleFileSelect = useCallback((files) => {
+  const handleFileSelect = useCallback((files: File[]) => {
     setUploadedImages(files);
   }, []);
 
-  const handleUploadImages = useCallback(async () => {
+  const handleUploadImages = useCallback(async (): Promise<UploadedImage[] | null> => {
     if (!isAuthenticated) {
       setMessage({ type: 'error', text: 'You must be logged in to upload images.' });
       return null;
@@ -85,7 +130,7 @@ export const useObservationForm = (observationService, uploadService) => {
     setMessage(null);
 
     try {
-      const results = await uploadService.uploadMultipleImages(uploadedImages, formData);
+      const results = await uploadService.uploadMultipleImages(uploadedImages, {});
       
       setMessage({ 
         type: 'success', 
@@ -100,7 +145,7 @@ export const useObservationForm = (observationService, uploadService) => {
       setAvailableImages(images);
 
       return results;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
       setMessage({ 
         type: 'error', 
@@ -110,7 +155,7 @@ export const useObservationForm = (observationService, uploadService) => {
     } finally {
       setUploading(false);
     }
-  }, [uploadedImages, formData, uploadService, observationService, isAuthenticated]);
+  }, [uploadedImages, uploadService, observationService, isAuthenticated]);
 
   const addProperty = useCallback(() => {
     if (propertyKey && propertyValue) {
@@ -126,7 +171,7 @@ export const useObservationForm = (observationService, uploadService) => {
     }
   }, [propertyKey, propertyValue]);
 
-  const removeProperty = useCallback((key) => {
+  const removeProperty = useCallback((key: string) => {
     setFormData(prev => {
       const newProperties = { ...prev.properties };
       delete newProperties[key];
@@ -177,14 +222,12 @@ export const useObservationForm = (observationService, uploadService) => {
     setMessage(null);
 
     try {
-      const observationData = {
+      const observationData: ObservationData = {
         title: formData.title,
         description: formData.description,
         observationTime: formData.observationTime || new Date().toISOString(),
-        location: {
-          latitude: parseFloat(formData.latitude),
-          longitude: parseFloat(formData.longitude)
-        },
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude),
         imageIds: formData.imageIds,
         properties: formData.properties
       };
@@ -208,7 +251,7 @@ export const useObservationForm = (observationService, uploadService) => {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Observation creation error:', error);
       setMessage({ 
         type: 'error', 
