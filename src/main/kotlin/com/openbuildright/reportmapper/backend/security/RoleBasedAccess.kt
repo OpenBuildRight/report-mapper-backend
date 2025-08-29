@@ -8,7 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-@PreAuthorize("hasRole('MODERATOR') or @observationAccessService.isOwner(#id, authentication.name)")
+@PreAuthorize("hasScope('moderator') or @observationAccessService.isOwner(#id, authentication.name)")
 annotation class OwnerOrModeratorAccess
 
 /**
@@ -16,7 +16,7 @@ annotation class OwnerOrModeratorAccess
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-@PreAuthorize("hasRole('MODERATOR') or @observationAccessService.isOwner(#resourceId, authentication.name)")
+@PreAuthorize("hasScope('moderator') or @observationAccessService.isOwner(#resourceId, authentication.name)")
 annotation class OwnerOrModeratorAccessById(val resourceId: String = "resourceId")
 
 /**
@@ -24,7 +24,7 @@ annotation class OwnerOrModeratorAccessById(val resourceId: String = "resourceId
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-@PreAuthorize("hasRole('MODERATOR')")
+@PreAuthorize("hasScope('moderator')")
 annotation class ModeratorOnly
 
 /**
@@ -32,5 +32,5 @@ annotation class ModeratorOnly
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-@PreAuthorize("hasRole('MODERATOR')")
+@PreAuthorize("hasScope('moderator')")
 annotation class ModeratorOnlyById(val resourceId: String = "resourceId")

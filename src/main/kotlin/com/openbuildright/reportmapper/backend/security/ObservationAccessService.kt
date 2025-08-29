@@ -51,15 +51,15 @@ class ObservationAccessService(
      */
     fun canEdit(observationId: String, authentication: Authentication): Boolean {
         val username = authentication.name
-        val hasModeratorRole = jwtScopeExtractor.hasModeratorRole(authentication)
-        return isOwner(observationId, username) || hasModeratorRole
+        val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
+        return isOwner(observationId, username) || hasModeratorScope
     }
     
     /**
      * Check if user can publish/unpublish an observation
      */
     fun canPublish(observationId: String, authentication: Authentication): Boolean {
-        return jwtScopeExtractor.hasModeratorRole(authentication)
+        return jwtScopeExtractor.hasModeratorScope(authentication)
     }
     
     /**
@@ -67,8 +67,8 @@ class ObservationAccessService(
      */
     fun canDelete(observationId: String, authentication: Authentication): Boolean {
         val username = authentication.name
-        val hasModeratorRole = jwtScopeExtractor.hasModeratorRole(authentication)
-        return isOwner(observationId, username) || hasModeratorRole
+        val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
+        return isOwner(observationId, username) || hasModeratorScope
     }
     
     /**
@@ -84,12 +84,12 @@ class ObservationAccessService(
         }
         
         val username = authentication.name
-        val hasModeratorRole = jwtScopeExtractor.hasModeratorRole(authentication)
+        val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
         val isOwner = isOwner(observationId, username)
         val isPublished = isPublished(observationId)
         
         val accessLevel = when {
-            hasModeratorRole -> AccessLevel.MODERATOR
+            hasModeratorScope -> AccessLevel.MODERATOR
             isOwner -> AccessLevel.OWNER
             isPublished -> AccessLevel.PUBLIC
             else -> AccessLevel.DENIED
@@ -97,9 +97,9 @@ class ObservationAccessService(
         
         return AccessInfo(
             accessLevel = accessLevel,
-            canEdit = isOwner || hasModeratorRole,
-            canPublish = hasModeratorRole,
-            canDelete = isOwner || hasModeratorRole
+            canEdit = isOwner || hasModeratorScope,
+            canPublish = hasModeratorScope,
+            canDelete = isOwner || hasModeratorScope
         )
     }
     
@@ -108,9 +108,9 @@ class ObservationAccessService(
      */
     fun canAccessDraftResource(resourceId: String, authentication: Authentication): Boolean {
         val username = authentication.name
-        val hasModeratorRole = jwtScopeExtractor.hasModeratorRole(authentication)
+        val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
         
-        if (hasModeratorRole) return true
+        if (hasModeratorScope) return true
         
         val observations = observationService.getObservationsByUser(username)
         return observations.any { observation ->

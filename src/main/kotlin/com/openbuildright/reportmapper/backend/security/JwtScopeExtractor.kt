@@ -1,31 +1,30 @@
 package com.openbuildright.reportmapper.backend.security
 
 import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Component
 
 @Component
 class JwtScopeExtractor {
     
     /**
-     * Extract scopes from Spring Security authorities (mapped from OAuth2/OIDC JWT scopes)
+     * Extract scopes from OAuth2/OIDC JWT token
      * @param authentication The Spring Security authentication object
-     * @return List of scopes/roles
+     * @return List of scopes
      */
     fun extractScopes(authentication: Authentication): List<String> {
-        return authentication.authorities
-            .map { it.authority }
-            .filter { it.startsWith("ROLE_") }
-            .map { it.removePrefix("ROLE_") }
+        val principal = authentication.principal as Jwt
+        val scopeClaim = principal.claims["scope"]?.toString()
+        return scopeClaim?.split(" ")?.filter { it.isNotBlank() } ?: emptyList()
     }
     
     /**
-     * Check if user has moderator role
+     * Check if user has moderator scope
      * @param authentication The Spring Security authentication object
-     * @return true if user has moderator role
+     * @return true if user has moderator scope
      */
-    fun hasModeratorRole(authentication: Authentication): Boolean {
-        return authentication.authorities.any { 
-            it.authority == "ROLE_moderator" 
-        }
+    fun hasModeratorScope(authentication: Authentication): Boolean {
+        val scopes = extractScopes(authentication)
+        return scopes.any { it == "moderator" }
     }
 }
