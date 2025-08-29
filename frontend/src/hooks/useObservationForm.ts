@@ -208,10 +208,20 @@ export const useObservationForm = (
     setMessage(null);
 
     try {
+      // Convert datetime-local format to ISO 8601
+      let observationTime: string;
+      if (formData.observationTime) {
+        // datetime-local format is "YYYY-MM-DDTHH:MM", convert to ISO 8601
+        const date = new Date(formData.observationTime);
+        observationTime = date.toISOString();
+      } else {
+        observationTime = new Date().toISOString();
+      }
+
       const observationData: ObservationData = {
         title: formData.title,
         description: formData.description,
-        observationTime: formData.observationTime || new Date().toISOString(),
+        observationTime: observationTime,
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
         imageIds: formData.imageIds,
