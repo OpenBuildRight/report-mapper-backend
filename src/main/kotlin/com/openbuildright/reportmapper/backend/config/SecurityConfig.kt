@@ -24,8 +24,12 @@ class SecurityConfig(
                 it.requestMatchers(
                     "/swagger-ui/*",
                     "/v3/api-docs",
-                    "/v3/api-docs/*"
+                    "/v3/api-docs/*",
+                    "/image/published/**"  // Allow published images without authentication
                     ).permitAll()
+                it.requestMatchers(
+                    "/image/draft/**"      // Require authentication for draft images
+                    ).authenticated()
                 it.anyRequest().authenticated()
             }.oauth2ResourceServer { it.jwt {  } }
         return http.build()

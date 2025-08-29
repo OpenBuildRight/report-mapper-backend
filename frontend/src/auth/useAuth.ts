@@ -24,6 +24,7 @@ export interface AuthState {
   clearError: () => void;
   signinRedirect: () => Promise<void>;
   signoutRedirect: () => Promise<void>;
+  handleRetryLogin: () => void;
 }
 
 export const useAuth = (): AuthState => {
@@ -178,6 +179,13 @@ export const useAuth = (): AuthState => {
     return false;
   }, [auth.isAuthenticated, auth.user, auth.isLoading, auth.error, user, auth]);
 
+  const handleRetryLogin = (): void => {
+    clearError();
+    if (auth.signinRedirect) {
+      auth.signinRedirect();
+    }
+  };
+
   return {
     isAuthenticated,
     isLoading: auth.isLoading,
@@ -187,6 +195,7 @@ export const useAuth = (): AuthState => {
     logout,
     clearError,
     signinRedirect: auth.signinRedirect,
-    signoutRedirect: auth.signoutRedirect
+    signoutRedirect: auth.signoutRedirect,
+    handleRetryLogin
   };
 };

@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../auth/useAuth';
 import ObservationService, { ObservationData, Image, GeoLocation } from '../services/observationService';
 import ImageUploadService, { UploadedImage } from '../services/imageUploadService';
+import { useErrorHandler, createUploadError, createValidationError } from './useErrorHandler';
+import { ErrorDetails } from '../components/ErrorMessage';
 
 export interface FormData {
   title: string;
@@ -26,6 +28,7 @@ export interface UseObservationFormReturn {
   uploading: boolean;
   loading: boolean;
   message: Message | null;
+  error: ErrorDetails | null;
   
   // Actions
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -35,6 +38,7 @@ export interface UseObservationFormReturn {
   getCurrentLocation: () => void;
   submitObservation: () => Promise<any>;
   clearMessage: () => void;
+  clearError: () => void;
   handleImageDescriptionChange: (imageId: string, description: string) => void;
   handleLocationFromImage: (location: GeoLocation) => void;
   handleTimeFromImage: (time: string) => void;
@@ -61,6 +65,13 @@ export const useObservationForm = (
   const [uploading, setUploading] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<Message | null>(null);
+
+  // Use the error handler hook
+  const { error, setError, clearError } = useErrorHandler({
+    showRetry: true,
+    showDismiss: true,
+    autoDismiss: false
+  });
 
   // Load available images only if authenticated
   useEffect(() => {
@@ -92,17 +103,20 @@ export const useObservationForm = (
 
   const handleUploadImages = useCallback(async (): Promise<UploadedImage[] | null> => {
     if (!isAuthenticated) {
-      setMessage({ type: 'error', text: 'You must be logged in to upload images.' });
+      const authError = createUploadError('You must be logged in to upload images.');
+      setError(authError);
       return null;
     }
 
     if (uploadedImages.length === 0) {
-      setMessage({ type: 'error', text: 'Please select at least one image to upload.' });
+      const validationError = createValidationError('Please select at least one image to upload.');
+      setError(validationError);
       return null;
     }
 
     setUploading(true);
     setMessage(null);
+    clearError();
 
     try {
       const results = await uploadService.uploadMultipleImages(uploadedImages, {});
@@ -164,15 +178,19 @@ export const useObservationForm = (
       return results;
     } catch (error: any) {
       console.error('Upload error:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'Failed to upload images. Please try again.' 
-      });
+      
+      // Create a specific upload error with retry action
+      const uploadError = createUploadError(
+        error.response?.data?.message || 'Failed to upload images. Please try again.',
+        () => handleUploadImages() // Retry action
+      );
+      
+      setError(uploadError);
       return null;
     } finally {
       setUploading(false);
     }
-  }, [uploadedImages, uploadService, isAuthenticated, formData.latitude, formData.longitude, formData.observationTime]);
+  }, [uploadedImages, uploadService, isAuthenticated, formData.latitude, formData.longitude, formData.observationTime, setError, clearError]);
 
   const handleImageDescriptionChange = useCallback((imageId: string, description: string) => {
     setAvailableImages(prev => 
@@ -210,33 +228,32 @@ export const useObservationForm = (
           }));
         },
         (error) => {
-          setMessage({ 
-            type: 'error', 
-            text: 'Unable to get current location. Please enter coordinates manually.' 
-          });
+          const locationError = createUploadError('Unable to get current location. Please enter coordinates manually.');
+          setError(locationError);
         }
       );
     } else {
-      setMessage({ 
-        type: 'error', 
-        text: 'Geolocation is not supported by this browser.' 
-      });
+      const browserError = createUploadError('Geolocation is not supported by this browser.');
+      setError(browserError);
     }
-  }, []);
+  }, [setError]);
 
   const submitObservation = useCallback(async () => {
     if (!isAuthenticated) {
-      setMessage({ type: 'error', text: 'You must be logged in to create observations.' });
+      const authError = createUploadError('You must be logged in to create observations.');
+      setError(authError);
       return null;
     }
 
     if (!formData.title || !formData.description || !formData.latitude || !formData.longitude || availableImages.length === 0) {
-      setMessage({ type: 'error', text: 'Please fill in all required fields and upload at least one image.' });
+      const validationError = createValidationError('Please fill in all required fields and upload at least one image.');
+      setError(validationError);
       return null;
     }
 
     setLoading(true);
     setMessage(null);
+    clearError();
 
     try {
       // Convert datetime-local format to ISO 8601
@@ -283,15 +300,18 @@ export const useObservationForm = (
       return result;
     } catch (error: any) {
       console.error('Observation creation error:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'Failed to create observation. Please try again.' 
-      });
+      
+      const creationError = createUploadError(
+        error.response?.data?.message || 'Failed to create observation. Please try again.',
+        () => submitObservation() // Retry action
+      );
+      
+      setError(creationError);
       return null;
     } finally {
       setLoading(false);
     }
-  }, [formData, availableImages, observationService, isAuthenticated]);
+  }, [formData, availableImages, observationService, isAuthenticated, setError, clearError]);
 
   const clearMessage = useCallback(() => {
     setMessage(null);
@@ -305,6 +325,7 @@ export const useObservationForm = (
     uploading,
     loading,
     message,
+    error,
     
     // Actions
     handleInputChange,
@@ -314,6 +335,7 @@ export const useObservationForm = (
     getCurrentLocation,
     submitObservation,
     clearMessage,
+    clearError,
     handleImageDescriptionChange,
     handleLocationFromImage,
     handleTimeFromImage

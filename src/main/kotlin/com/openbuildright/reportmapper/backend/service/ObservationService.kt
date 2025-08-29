@@ -77,4 +77,27 @@ class ObservationService(
         return observation.get().toObservationModel()
     }
 
+    /**
+     * Get all observations for a specific user
+     */
+    fun getObservationsByUser(username: String): List<ObservationModel> {
+        return observationRepository.findByReporterId(username)
+            .map { it.toObservationModel() }
+    }
+
+    /**
+     * Get all observations (for admin/access control purposes)
+     */
+    fun getAllObservations(): List<ObservationModel> {
+        return observationRepository.findAll()
+            .map { it.toObservationModel() }
+    }
+
+    /**
+     * Get all published (enabled) observations
+     */
+    fun getPublishedObservations(): List<ObservationModel> {
+        return observationRepository.findByEnabledTrue()
+            .map { it.toObservationModel() }
+    }
 }

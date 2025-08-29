@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './auth/AuthProvider';
 import { useAuth } from './auth/useAuth';
-import HeaderContainer from './containers/HeaderContainer';
-import HomePageContainer from './containers/HomePageContainer';
-import LoginPage from './components/LoginPage';
 import ObservationFormContainer from './containers/ObservationFormContainer';
+import HeaderContainer from './containers/HeaderContainer';
 import AuthErrorModal from './components/AuthErrorModal';
-import './App.css';
+import './styles/ErrorComponents.css';
 
+// Protected Route Component
 interface ProtectedRouteProps {
   children: React.ReactNode;
   isAuthenticated: boolean;
@@ -15,158 +15,123 @@ interface ProtectedRouteProps {
   redirectTo: string;
 }
 
-// Protected Route component that handles OAuth flow
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, isAuthenticated, isLoading, redirectTo }) => {
   const { signinRedirect } = useAuth();
-  const location = useLocation();
-
+  
   useEffect(() => {
-    // If not loading and not authenticated, start OAuth flow
     if (!isLoading && !isAuthenticated) {
-      // Store the intended destination for after login
       localStorage.setItem('redirectAfterLogin', redirectTo);
       console.log('🔐 Starting OAuth flow, redirecting to:', redirectTo);
       signinRedirect();
     }
   }, [isLoading, isAuthenticated, redirectTo, signinRedirect]);
 
-  // Show loading while OAuth flow is in progress
   if (isLoading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '50vh' 
-      }}>
-        <div>Authenticating...</div>
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Authenticating...</p>
       </div>
     );
   }
 
-  // If authenticated, show the protected content
   if (isAuthenticated) {
     return <>{children}</>;
   }
 
-  // If not authenticated and not loading, show loading (OAuth flow should start)
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '50vh' 
-    }}>
-      <div>Redirecting to login...</div>
+    <div className="loading-container">
+      <div className="loading-spinner"></div>
+      <p>Redirecting to login...</p>
     </div>
   );
 };
 
-// Component to handle redirect after successful authentication
+// Auth Redirect Handler Component
 const AuthRedirectHandler: React.FC = () => {
   const { isAuthenticated, isLoading, error } = useAuth();
-  const location = useLocation();
-
+  
   useEffect(() => {
-    // Check if we have a pending redirect and are now authenticated
     if (isAuthenticated && !isLoading) {
       const pendingRedirect = localStorage.getItem('redirectAfterLogin');
       if (pendingRedirect) {
         console.log('🔐 Authentication successful, redirecting to:', pendingRedirect);
         localStorage.removeItem('redirectAfterLogin');
-        // Use window.location to ensure full page navigation
         window.location.href = pendingRedirect;
       }
     }
   }, [isAuthenticated, isLoading]);
 
-  // If there's an error, show it but don't redirect away
   if (error) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '50vh',
-        flexDirection: 'column'
-      }}>
-        <h2>Authentication Failed</h2>
+      <div className="auth-error-container">
+        <h2>Authentication Error</h2>
         <p>{error.message}</p>
-        <p>Please try again or contact support if the problem persists.</p>
+        <button onClick={() => window.location.reload()}>Try Again</button>
       </div>
     );
   }
 
-  // Show loading while checking authentication status
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '50vh' 
-    }}>
-      <div>Checking authentication...</div>
+    <div className="loading-container">
+      <div className="loading-spinner"></div>
+      <p>Checking authentication...</p>
+    </div>
+  );
+};
+
+// Main App Component
+const AppContent: React.FC = () => {
+  const { isAuthenticated, isLoading, error, clearError, handleRetryLogin } = useAuth();
+
+  const handleSuccess = (result: any) => {
+    console.log('Observation created successfully:', result);
+    // You can add navigation or other success handling here
+  };
+
+  return (
+    <div className="App">
+      <HeaderContainer />
+      
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Navigate to="/observation-form" replace />} />
+          
+          <Route 
+            path="/observation-form" 
+            element={
+              <ProtectedRoute 
+                isAuthenticated={isAuthenticated} 
+                isLoading={isLoading} 
+                redirectTo="/observation-form"
+              >
+                <ObservationFormContainer onSuccess={handleSuccess} />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route path="/auth-callback" element={<AuthRedirectHandler />} />
+          
+          <Route path="*" element={<Navigate to="/observation-form" replace />} />
+        </Routes>
+      </main>
+
+      <AuthErrorModal 
+        error={error} 
+        onClose={clearError} 
+        onRetry={handleRetryLogin}
+      />
     </div>
   );
 };
 
 const App: React.FC = () => {
-  const { isLoading, isAuthenticated, error, clearError, signinRedirect } = useAuth();
-
-  const handleObservationSuccess = (result: any) => {
-    console.log('Observation created successfully:', result);
-    // You can add navigation or other success handling here
-  };
-
-  const handleRetryLogin = () => {
-    clearError();
-    signinRedirect();
-  };
-
-  if (isLoading) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
-        <div>Loading...</div>
-      </div>
-    );
-  }
-
   return (
-    <Router>
-      <div className="App">
-        <AuthErrorModal 
-          error={error} 
-          onClose={clearError} 
-          onRetry={handleRetryLogin}
-        />
-        <HeaderContainer />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<HomePageContainer />} />
-            <Route 
-              path="/observation" 
-              element={
-                <ProtectedRoute 
-                  isAuthenticated={isAuthenticated} 
-                  isLoading={isLoading}
-                  redirectTo="/observation"
-                >
-                  <ObservationFormContainer onSuccess={handleObservationSuccess} />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/auth-callback" element={<AuthRedirectHandler />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 };
 

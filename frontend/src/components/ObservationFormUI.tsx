@@ -5,6 +5,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/ObservationForm.css';
+import '../styles/ErrorComponents.css';
+import ErrorMessage, { ErrorDetails } from './ErrorMessage';
+import { useImageUrl } from '../services/imageService';
 
 interface ObservationFormUIProps {
   // State
@@ -14,6 +17,7 @@ interface ObservationFormUIProps {
   uploading: boolean;
   loading: boolean;
   message: Message | null;
+  error: ErrorDetails | null;
   
   // Actions
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -23,6 +27,7 @@ interface ObservationFormUIProps {
   onGetCurrentLocation: () => void;
   onSubmit: () => void;
   onClearMessage: () => void;
+  onClearError: () => void;
   onImageDescriptionChange: (imageId: string, description: string) => void;
   onLocationFromImage: (location: GeoLocation) => void;
   onTimeFromImage: (time: string) => void;
@@ -156,6 +161,7 @@ const ImageGallery: React.FC<{
 }> = ({ images, onImageSelection, onImageDescriptionChange }) => {
   const [editingDescription, setEditingDescription] = useState<string | null>(null);
   const [tempDescription, setTempDescription] = useState('');
+  const { getImageUrl, isAuthenticated } = useImageUrl();
 
   const handleDescriptionEdit = (imageId: string, currentDescription: string) => {
     setEditingDescription(imageId);
@@ -187,75 +193,80 @@ const ImageGallery: React.FC<{
     <div className="image-gallery">
       <h4>Observation Images ({images.length})</h4>
       <div className="image-grid">
-        {images.map((image) => (
-          <div key={image.id} className="image-card">
-            <div className="image-preview">
-              <img 
-                src={`/api/image/download/thumbnail-${image.id}`} 
-                alt={image.description || `Image ${image.id}`}
-                onError={(e) => {
-                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg3MFY3MEgzMFYzMFoiIGZpbGw9IiNDQ0NDQ0MiLz4KPHN2ZyB4PSIzNSIgeT0iMzUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTkgM0g1QzMuOSAzIDMgMy45IDMgNVYxOUMzIDIwLjEgMy45IDIxIDUgMjFIMTlDMjAuMSAyMSAyMSAyMC4xIDIxIDE5VjVDMjEgMy45IDIwLjEgMyAxOSAzWk0xOSAxOUg1VjVIMTlWMTlaIiBmaWxsPSIjOTk5OTk5Ii8+CjxwYXRoIGQ9Ik0xNCAxNEgxMFYxMEgxNFYxNFoiIGZpbGw9IiM5OTk5OTkiLz4KPC9zdmc+Cjwvc3ZnPgo=';
-                }}
-              />
-              <button 
-                type="button" 
-                className="image-remove-btn"
-                onClick={() => handleRemoveImage(image.id)}
-                title="Remove image"
-              >
-                🗑️
-              </button>
-            </div>
-            <div className="image-info">
-              <div className="image-description">
-                {editingDescription === image.id ? (
-                  <div className="description-edit">
-                    <input
-                      type="text"
-                      value={tempDescription}
-                      onChange={(e) => setTempDescription(e.target.value)}
-                      placeholder="Enter image description..."
-                      autoFocus
-                    />
-                    <div className="edit-actions">
+        {images.map((image) => {
+          // For draft observations, images are not published yet
+          const imageUrl = getImageUrl(image.id, true, false);
+          
+          return (
+            <div key={image.id} className="image-card">
+              <div className="image-preview">
+                <img 
+                  src={imageUrl}
+                  alt={image.description || `Image ${image.id}`}
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg3MFY3MEgzMFYzMFoiIGZpbGw9IiNDQ0NDQ0MiLz4KPHN2ZyB4PSIzNSIgeT0iMzUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTkgM0g1QzMuOSAzIDMgMy45IDMgNVYxOUMzIDIwLjEgMy45IDIxIDUgMjFIMTlDMjAuMSAyMSAyMSAyMC4xIDIxIDE5VjVDMjEgMy45IDIwLjEgMyAxOSAzWk0xOSAxOUg1VjVIMTlWMTlaIiBmaWxsPSIjOTk5OTk5Ii8+CjxwYXRoIGQ9Ik0xNCAxNEgxMFYxMEgxNFYxNFoiIGZpbGw9IiM5OTk5OTkiLz4KPC9zdmc+Cjwvc3ZnPgo=';
+                  }}
+                />
+                <button 
+                  type="button" 
+                  className="image-remove-btn"
+                  onClick={() => handleRemoveImage(image.id)}
+                  title="Remove image"
+                >
+                  🗑️
+                </button>
+              </div>
+              <div className="image-info">
+                <div className="image-description">
+                  {editingDescription === image.id ? (
+                    <div className="description-edit">
+                      <input
+                        type="text"
+                        value={tempDescription}
+                        onChange={(e) => setTempDescription(e.target.value)}
+                        placeholder="Enter image description..."
+                        autoFocus
+                      />
+                      <div className="edit-actions">
+                        <button 
+                          type="button" 
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleDescriptionSave(image.id)}
+                        >
+                          Save
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn btn-sm btn-secondary"
+                          onClick={handleDescriptionCancel}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="description-display">
+                      <span>{image.description || 'No description'}</span>
                       <button 
                         type="button" 
-                        className="btn btn-sm btn-primary"
-                        onClick={() => handleDescriptionSave(image.id)}
+                        className="btn btn-sm btn-link"
+                        onClick={() => handleDescriptionEdit(image.id, image.description || '')}
                       >
-                        Save
-                      </button>
-                      <button 
-                        type="button" 
-                        className="btn btn-sm btn-secondary"
-                        onClick={handleDescriptionCancel}
-                      >
-                        Cancel
+                        Edit
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="description-display">
-                    <span>{image.description || 'No description'}</span>
-                    <button 
-                      type="button" 
-                      className="btn btn-sm btn-link"
-                      onClick={() => handleDescriptionEdit(image.id, image.description || '')}
-                    >
-                      Edit
-                    </button>
+                  )}
+                </div>
+                
+                {image.location && (
+                  <div className="image-location">
+                    <small>📍 {image.location.latitude.toFixed(6)}, {image.location.longitude.toFixed(6)}</small>
                   </div>
                 )}
               </div>
-              
-              {image.location && (
-                <div className="image-location">
-                  <small>📍 {image.location.latitude.toFixed(6)}, {image.location.longitude.toFixed(6)}</small>
-                </div>
-              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -327,6 +338,7 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
   uploading,
   loading,
   message,
+  error,
   
   // Actions
   onInputChange,
@@ -336,6 +348,7 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
   onGetCurrentLocation,
   onSubmit,
   onClearMessage,
+  onClearError,
   onImageDescriptionChange,
   onLocationFromImage,
   onTimeFromImage
@@ -409,6 +422,14 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
             ×
           </button>
         </div>
+      )}
+
+      {error && (
+        <ErrorMessage 
+          error={error} 
+          variant="inline"
+          className="form-error"
+        />
       )}
 
       <FormValidation formData={formData} hasImages={availableImages.length > 0} />

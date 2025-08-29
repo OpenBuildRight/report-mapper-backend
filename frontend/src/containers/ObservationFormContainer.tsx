@@ -22,6 +22,7 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
     uploading,
     loading,
     message,
+    error,
     handleInputChange,
     handleImageSelection,
     handleFileSelect,
@@ -29,6 +30,7 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
     getCurrentLocation,
     submitObservation,
     clearMessage,
+    clearError,
     handleImageDescriptionChange,
     handleLocationFromImage,
     handleTimeFromImage
@@ -50,6 +52,7 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
       uploading={uploading}
       loading={loading}
       message={message}
+      error={error}
       
       // Actions
       onInputChange={handleInputChange}
@@ -59,6 +62,7 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
       onGetCurrentLocation={getCurrentLocation}
       onSubmit={handleSubmit}
       onClearMessage={clearMessage}
+      onClearError={clearError}
       onImageDescriptionChange={handleImageDescriptionChange}
       onLocationFromImage={handleLocationFromImage}
       onTimeFromImage={handleTimeFromImage}
