@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { FormData, Message } from '../hooks/useObservationForm';
 import { Image, GeoLocation } from '../services/observationService';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import { Icon, LatLng } from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/ObservationForm.css';
 
@@ -14,82 +14,31 @@ interface ObservationFormUIProps {
   uploading: boolean;
   loading: boolean;
   message: Message | null;
-  propertyKey: string;
-  propertyValue: string;
   
   // Actions
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onImageSelection: (imageId: string) => void;
   onFileSelect: (files: File[]) => void;
   onUploadImages: () => Promise<any>;
-  onAddProperty: () => void;
-  onRemoveProperty: (key: string) => void;
   onGetCurrentLocation: () => void;
   onSubmit: () => void;
   onClearMessage: () => void;
-  onPropertyKeyChange: (value: string) => void;
-  onPropertyValueChange: (value: string) => void;
   onImageDescriptionChange: (imageId: string, description: string) => void;
   onLocationFromImage: (location: GeoLocation) => void;
+  onTimeFromImage: (time: string) => void;
 }
 
-// Map component for location selection
+// Map component for location display only
 const LocationMap: React.FC<{
   latitude: number;
   longitude: number;
-  onLocationChange: (lat: number, lng: number) => void;
-  imageLocations: GeoLocation[];
-}> = ({ latitude, longitude, onLocationChange, imageLocations }) => {
+}> = ({ latitude, longitude }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const MapClickHandler = () => {
-    useMapEvents({
-      click: (e) => {
-        onLocationChange(e.latlng.lat, e.latlng.lng);
-      },
-    });
-    return null;
-  };
-
-  const mapContent = (
-    <MapContainer
-      center={[latitude, longitude]}
-      zoom={13}
-      style={{ height: isExpanded ? '400px' : '200px', width: '100%' }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      <MapClickHandler />
-      
-      {/* Observation location marker */}
-      <Marker position={[latitude, longitude]}>
-        <Popup>Observation Location</Popup>
-      </Marker>
-      
-      {/* Image location markers */}
-      {imageLocations.map((loc, index) => (
-        <Marker 
-          key={index} 
-          position={[loc.latitude, loc.longitude]}
-          icon={new Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-          })}
-        >
-          <Popup>Image {index + 1} Location</Popup>
-        </Marker>
-      ))}
-    </MapContainer>
-  );
 
   return (
     <div className="location-map-container">
       <div className="map-header">
-        <h4>Location Map</h4>
+        <h4>Observation Location</h4>
         <button 
           type="button" 
           className="btn btn-sm btn-secondary"
@@ -98,8 +47,24 @@ const LocationMap: React.FC<{
           {isExpanded ? 'Collapse' : 'Expand'}
         </button>
       </div>
-      {mapContent}
-      <small>Click on the map to set observation location</small>
+      <MapContainer
+        center={[latitude, longitude]}
+        zoom={13}
+        style={{ height: isExpanded ? '400px' : '200px', width: '100%' }}
+        zoomControl={true}
+        scrollWheelZoom={false}
+        doubleClickZoom={false}
+        dragging={false}
+        touchZoom={false}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <Marker position={[latitude, longitude]}>
+          <Popup>Observation Location</Popup>
+        </Marker>
+      </MapContainer>
     </div>
   );
 };
@@ -183,13 +148,12 @@ const ImageUploadArea: React.FC<{
   );
 };
 
-// Image gallery component
+// Image gallery component with trash icon for removal
 const ImageGallery: React.FC<{
   images: Image[];
-  selectedImageIds: string[];
   onImageSelection: (imageId: string) => void;
   onImageDescriptionChange: (imageId: string, description: string) => void;
-}> = ({ images, selectedImageIds, onImageSelection, onImageDescriptionChange }) => {
+}> = ({ images, onImageSelection, onImageDescriptionChange }) => {
   const [editingDescription, setEditingDescription] = useState<string | null>(null);
   const [tempDescription, setTempDescription] = useState('');
 
@@ -207,6 +171,10 @@ const ImageGallery: React.FC<{
     setEditingDescription(null);
   };
 
+  const handleRemoveImage = (imageId: string) => {
+    onImageSelection(imageId); // This will remove it from selected images
+  };
+
   if (images.length === 0) {
     return (
       <div className="image-gallery empty">
@@ -217,33 +185,28 @@ const ImageGallery: React.FC<{
 
   return (
     <div className="image-gallery">
-      <h4>Available Images ({images.length})</h4>
+      <h4>Observation Images ({images.length})</h4>
       <div className="image-grid">
         {images.map((image) => (
-          <div 
-            key={image.id} 
-            className={`image-card ${selectedImageIds.includes(image.id) ? 'selected' : ''}`}
-          >
-                         <div className="image-preview">
-               <img 
-                 src={`/api/image/download/thumbnail-${image.id}`} 
-                 alt={image.description || `Image ${image.id}`}
-                 onError={(e) => {
-                   e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg3MFY3MEgzMFYzMFoiIGZpbGw9IiNDQ0NDQ0MiLz4KPHN2ZyB4PSIzNSIgeT0iMzUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTkgM0g1QzMuOSAzIDMgMy45IDMgNVYxOUMzIDIwLjEgMy45IDIxIDUgMjFIMTlDMjAuMSAyMSAyMSAyMC4xIDIxIDE5VjVDMjEgMy45IDIwLjEgMyAxOSAzWk0xOSAxOUg1VjVIMTlWMTlaIiBmaWxsPSIjOTk5OTk5Ii8+CjxwYXRoIGQ9Ik0xNCAxNEgxMFYxMEgxNFYxNFoiIGZpbGw9IiM5OTk5OTkiLz4KPC9zdmc+Cjwvc3ZnPgo=';
-                 }}
-               />
-             </div>
+          <div key={image.id} className="image-card">
+            <div className="image-preview">
+              <img 
+                src={`/api/image/download/thumbnail-${image.id}`} 
+                alt={image.description || `Image ${image.id}`}
+                onError={(e) => {
+                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg3MFY3MEgzMFYzMFoiIGZpbGw9IiNDQ0NDQ0MiLz4KPHN2ZyB4PSIzNSIgeT0iMzUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTkgM0g1QzMuOSAzIDMgMy45IDMgNVYxOUMzIDIwLjEgMy45IDIxIDUgMjFIMTlDMjAuMSAyMSAyMSAyMC4xIDIxIDE5VjVDMjEgMy45IDIwLjEgMyAxOSAzWk0xOSAxOUg1VjVIMTlWMTlaIiBmaWxsPSIjOTk5OTk5Ii8+CjxwYXRoIGQ9Ik0xNCAxNEgxMFYxMEgxNFYxNFoiIGZpbGw9IiM5OTk5OTkiLz4KPC9zdmc+Cjwvc3ZnPgo=';
+                }}
+              />
+              <button 
+                type="button" 
+                className="image-remove-btn"
+                onClick={() => handleRemoveImage(image.id)}
+                title="Remove image"
+              >
+                🗑️
+              </button>
+            </div>
             <div className="image-info">
-              <div className="image-selection">
-                <input
-                  type="checkbox"
-                  id={image.id}
-                  checked={selectedImageIds.includes(image.id)}
-                  onChange={() => onImageSelection(image.id)}
-                />
-                <label htmlFor={image.id}>Include in observation</label>
-              </div>
-              
               <div className="image-description">
                 {editingDescription === image.id ? (
                   <div className="description-edit">
@@ -298,10 +261,11 @@ const ImageGallery: React.FC<{
   );
 };
 
-// Form validation component
+// Form validation component with better UX
 const FormValidation: React.FC<{
   formData: FormData;
-}> = ({ formData }) => {
+  hasImages: boolean;
+}> = ({ formData, hasImages }) => {
   const requiredFields = [
     { name: 'title', label: 'Title', value: formData.title },
     { name: 'description', label: 'Description', value: formData.description },
@@ -310,8 +274,11 @@ const FormValidation: React.FC<{
   ];
 
   const missingFields = requiredFields.filter(field => !field.value.trim());
+  const totalRequired = requiredFields.length + (hasImages ? 0 : 1); // +1 for images if none
+  const completedFields = requiredFields.length - missingFields.length + (hasImages ? 1 : 0);
+  const progressPercentage = (completedFields / totalRequired) * 100;
 
-  if (missingFields.length === 0) {
+  if (missingFields.length === 0 && hasImages) {
     return (
       <div className="form-validation valid">
         <span>✅ All required fields are filled</span>
@@ -320,13 +287,34 @@ const FormValidation: React.FC<{
   }
 
   return (
-    <div className="form-validation invalid">
-      <span>⚠️ Missing required fields:</span>
-      <ul>
-        {missingFields.map(field => (
-          <li key={field.name}>{field.label}</li>
-        ))}
-      </ul>
+    <div className="form-validation incomplete">
+      <div className="validation-progress">
+        <div className="progress-bar">
+          <div 
+            className="progress-fill" 
+            style={{ width: `${progressPercentage}%` }}
+          ></div>
+        </div>
+        <span>{completedFields} of {totalRequired} required fields completed</span>
+      </div>
+      {missingFields.length > 0 && (
+        <div className="missing-fields">
+          <span>Still needed:</span>
+          <ul>
+            {missingFields.map(field => (
+              <li key={field.name}>{field.label}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {!hasImages && (
+        <div className="missing-fields">
+          <span>Still needed:</span>
+          <ul>
+            <li>At least one image</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
@@ -339,26 +327,20 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
   uploading,
   loading,
   message,
-  propertyKey,
-  propertyValue,
   
   // Actions
   onInputChange,
   onImageSelection,
   onFileSelect,
   onUploadImages,
-  onAddProperty,
-  onRemoveProperty,
   onGetCurrentLocation,
   onSubmit,
   onClearMessage,
-  onPropertyKeyChange,
-  onPropertyValueChange,
   onImageDescriptionChange,
-  onLocationFromImage
+  onLocationFromImage,
+  onTimeFromImage
 }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [showMap, setShowMap] = useState(false);
 
   // Auto-upload with progress
   const handleAutoUpload = async () => {
@@ -384,21 +366,24 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
     }
   };
 
-  // Get image locations for map
-  const imageLocations = availableImages
-    .filter(img => img.location)
-    .map(img => img.location!)
-    .filter((loc, index, arr) => 
-      arr.findIndex(l => l.latitude === loc.latitude && l.longitude === loc.longitude) === index
-    );
-
-  // Auto-populate location from first image with location data
+  // Auto-populate location and time from first image with data
   React.useEffect(() => {
-    if (!formData.latitude && !formData.longitude && imageLocations.length > 0) {
-      const firstImageLocation = imageLocations[0];
-      onLocationFromImage(firstImageLocation);
+    if (availableImages.length > 0) {
+      const firstImageWithLocation = availableImages.find(img => img.location);
+      const firstImageWithTime = availableImages.find(img => img.imageGeneratedTime);
+      
+      if (firstImageWithLocation?.location && !formData.latitude && !formData.longitude) {
+        onLocationFromImage(firstImageWithLocation.location);
+      }
+      
+      if (firstImageWithTime?.imageGeneratedTime && !formData.observationTime) {
+        // Convert ISO string to datetime-local format
+        const date = new Date(firstImageWithTime.imageGeneratedTime);
+        const localDateTime = date.toISOString().slice(0, 16);
+        onTimeFromImage(localDateTime);
+      }
     }
-  }, [imageLocations, formData.latitude, formData.longitude, onLocationFromImage]);
+  }, [availableImages, formData.latitude, formData.longitude, formData.observationTime, onLocationFromImage, onTimeFromImage]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -426,11 +411,31 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
         </div>
       )}
 
-      <FormValidation formData={formData} />
+      <FormValidation formData={formData} hasImages={availableImages.length > 0} />
 
       <form onSubmit={handleSubmit}>
+        {/* Step 1: Images */}
         <div className="form-section">
-          <h3>Basic Information</h3>
+          <h3>📷 Images</h3>
+          
+          <ImageUploadArea
+            uploadedImages={uploadedImages}
+            onFileSelect={onFileSelect}
+            onUpload={handleAutoUpload}
+            uploading={uploading}
+            uploadProgress={uploadProgress}
+          />
+
+          <ImageGallery
+            images={availableImages}
+            onImageSelection={onImageSelection}
+            onImageDescriptionChange={onImageDescriptionChange}
+          />
+        </div>
+
+        {/* Step 2: Basic Information */}
+        <div className="form-section">
+          <h3>📝 Basic Information</h3>
           
           <div className="form-group">
             <label htmlFor="title" className={!formData.title ? 'required' : ''}>
@@ -465,7 +470,12 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
               rows={4}
             />
           </div>
+        </div>
 
+        {/* Step 3: Time */}
+        <div className="form-section">
+          <h3>🕒 Time</h3>
+          
           <div className="form-group">
             <label htmlFor="observationTime">Observation Time</label>
             <input
@@ -476,12 +486,13 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
               onChange={onInputChange}
               disabled={loading}
             />
-            <small>Leave empty to use current time</small>
+            <small>Leave empty to use current time, or will auto-populate from image data</small>
           </div>
         </div>
 
+        {/* Step 4: Location */}
         <div className="form-section">
-          <h3>Location</h3>
+          <h3>📍 Location</h3>
           
           <div className="location-inputs">
             <div className="form-group">
@@ -534,83 +545,7 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
             <LocationMap
               latitude={currentLat}
               longitude={currentLng}
-              onLocationChange={(lat, lng) => {
-                onInputChange({
-                  target: { name: 'latitude', value: lat.toString() }
-                } as React.ChangeEvent<HTMLInputElement>);
-                onInputChange({
-                  target: { name: 'longitude', value: lng.toString() }
-                } as React.ChangeEvent<HTMLInputElement>);
-              }}
-              imageLocations={imageLocations}
             />
-          )}
-        </div>
-
-        <div className="form-section">
-          <h3>Images</h3>
-          
-          <ImageUploadArea
-            uploadedImages={uploadedImages}
-            onFileSelect={onFileSelect}
-            onUpload={handleAutoUpload}
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-          />
-
-          <ImageGallery
-            images={availableImages}
-            selectedImageIds={formData.imageIds}
-            onImageSelection={onImageSelection}
-            onImageDescriptionChange={onImageDescriptionChange}
-          />
-        </div>
-
-        <div className="form-section">
-          <h3>Custom Properties</h3>
-          
-          <div className="property-inputs">
-            <input
-              type="text"
-              placeholder="Property key"
-              value={propertyKey}
-              onChange={(e) => onPropertyKeyChange(e.target.value)}
-              disabled={loading}
-            />
-            <input
-              type="text"
-              placeholder="Property value"
-              value={propertyValue}
-              onChange={(e) => onPropertyValueChange(e.target.value)}
-              disabled={loading}
-            />
-            <button 
-              type="button" 
-              onClick={onAddProperty}
-              disabled={loading || !propertyKey || !propertyValue}
-              className="btn btn-secondary"
-            >
-              Add Property
-            </button>
-          </div>
-          
-          {Object.keys(formData.properties).length > 0 && (
-            <div className="properties-list">
-              {Object.entries(formData.properties).map(([key, value]) => (
-                <div key={key} className="property-item">
-                  <span className="property-key">{key}:</span>
-                  <span className="property-value">{value}</span>
-                  <button 
-                    type="button" 
-                    onClick={() => onRemoveProperty(key)}
-                    disabled={loading}
-                    className="btn btn-sm btn-danger"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
           )}
         </div>
 
@@ -618,7 +553,7 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
           <button 
             type="submit" 
             className="btn btn-primary" 
-            disabled={loading || !formData.title || !formData.description || !formData.latitude || !formData.longitude}
+            disabled={loading || !formData.title || !formData.description || !formData.latitude || !formData.longitude || availableImages.length === 0}
           >
             {loading ? 'Creating...' : 'Create Observation'}
           </button>

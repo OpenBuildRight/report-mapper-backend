@@ -10,7 +10,7 @@ export interface FormData {
   latitude: string;
   longitude: string;
   imageIds: string[];
-  properties: Record<string, string>; // Changed from any to string to match backend
+  properties: Record<string, string>; // Keep for backend compatibility but not used in UI
 }
 
 export interface Message {
@@ -26,23 +26,18 @@ export interface UseObservationFormReturn {
   uploading: boolean;
   loading: boolean;
   message: Message | null;
-  propertyKey: string;
-  propertyValue: string;
   
   // Actions
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleImageSelection: (imageId: string) => void;
   handleFileSelect: (files: File[]) => void;
   handleUploadImages: () => Promise<UploadedImage[] | null>;
-  addProperty: () => void;
-  removeProperty: (key: string) => void;
   getCurrentLocation: () => void;
   submitObservation: () => Promise<any>;
   clearMessage: () => void;
-  setPropertyKey: (value: string) => void;
-  setPropertyValue: (value: string) => void;
   handleImageDescriptionChange: (imageId: string, description: string) => void;
   handleLocationFromImage: (location: GeoLocation) => void;
+  handleTimeFromImage: (time: string) => void;
 }
 
 export const useObservationForm = (
@@ -66,8 +61,6 @@ export const useObservationForm = (
   const [uploading, setUploading] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<Message | null>(null);
-  const [propertyKey, setPropertyKey] = useState<string>('');
-  const [propertyValue, setPropertyValue] = useState<string>('');
 
   // Load available images only if authenticated
   useEffect(() => {
@@ -85,11 +78,11 @@ export const useObservationForm = (
   }, []);
 
   const handleImageSelection = useCallback((imageId: string) => {
+    // This now removes the image from the available images list
+    setAvailableImages(prev => prev.filter(img => img.id !== imageId));
     setFormData(prev => ({
       ...prev,
-      imageIds: prev.imageIds.includes(imageId)
-        ? prev.imageIds.filter(id => id !== imageId)
-        : [...prev.imageIds, imageId]
+      imageIds: prev.imageIds.filter(id => id !== imageId)
     }));
   }, []);
 
@@ -122,7 +115,7 @@ export const useObservationForm = (
       // Clear uploaded images
       setUploadedImages([]);
       
-      // Add newly uploaded images to available images list
+      // Add newly uploaded images to available images list and automatically include them
       const newImages = results.map(result => ({
         id: result.id,
         createdTime: result.createdTime,
@@ -132,6 +125,12 @@ export const useObservationForm = (
       }));
       
       setAvailableImages(prev => [...prev, ...newImages]);
+      
+      // Automatically include all uploaded images in the observation
+      setFormData(prev => ({
+        ...prev,
+        imageIds: [...prev.imageIds, ...newImages.map(img => img.id)]
+      }));
 
       // Auto-populate location from first image with location data if location is empty
       const firstImageWithLocation = newImages.find(img => img.location);
@@ -147,6 +146,21 @@ export const useObservationForm = (
         } : null);
       }
 
+      // Auto-populate time from first image with time data if time is empty
+      const firstImageWithTime = newImages.find(img => img.imageGeneratedTime);
+      if (firstImageWithTime?.imageGeneratedTime && !formData.observationTime) {
+        const date = new Date(firstImageWithTime.imageGeneratedTime);
+        const localDateTime = date.toISOString().slice(0, 16);
+        setFormData(prev => ({
+          ...prev,
+          observationTime: localDateTime
+        }));
+        setMessage(prev => prev ? {
+          ...prev,
+          text: `${prev.text} Time auto-populated from image data.`
+        } : null);
+      }
+
       return results;
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -158,7 +172,7 @@ export const useObservationForm = (
     } finally {
       setUploading(false);
     }
-  }, [uploadedImages, uploadService, isAuthenticated, formData.latitude, formData.longitude]);
+  }, [uploadedImages, uploadService, isAuthenticated, formData.latitude, formData.longitude, formData.observationTime]);
 
   const handleImageDescriptionChange = useCallback((imageId: string, description: string) => {
     setAvailableImages(prev => 
@@ -178,29 +192,11 @@ export const useObservationForm = (
     }));
   }, []);
 
-  const addProperty = useCallback(() => {
-    if (propertyKey && propertyValue) {
-      setFormData(prev => ({
-        ...prev,
-        properties: {
-          ...prev.properties,
-          [propertyKey]: propertyValue
-        }
-      }));
-      setPropertyKey('');
-      setPropertyValue('');
-    }
-  }, [propertyKey, propertyValue]);
-
-  const removeProperty = useCallback((key: string) => {
-    setFormData(prev => {
-      const newProperties = { ...prev.properties };
-      delete newProperties[key];
-      return {
-        ...prev,
-        properties: newProperties
-      };
-    });
+  const handleTimeFromImage = useCallback((time: string) => {
+    setFormData(prev => ({
+      ...prev,
+      observationTime: time
+    }));
   }, []);
 
   const getCurrentLocation = useCallback(() => {
@@ -234,8 +230,8 @@ export const useObservationForm = (
       return null;
     }
 
-    if (!formData.title || !formData.description || !formData.latitude || !formData.longitude) {
-      setMessage({ type: 'error', text: 'Please fill in all required fields.' });
+    if (!formData.title || !formData.description || !formData.latitude || !formData.longitude || availableImages.length === 0) {
+      setMessage({ type: 'error', text: 'Please fill in all required fields and upload at least one image.' });
       return null;
     }
 
@@ -261,7 +257,7 @@ export const useObservationForm = (
           latitude: parseFloat(formData.latitude),
           longitude: parseFloat(formData.longitude)
         },
-        imageIds: formData.imageIds,
+        imageIds: availableImages.map(img => img.id), // Use all available images
         properties: formData.properties
       };
 
@@ -282,6 +278,7 @@ export const useObservationForm = (
         imageIds: [],
         properties: {}
       });
+      setAvailableImages([]);
 
       return result;
     } catch (error: any) {
@@ -294,7 +291,7 @@ export const useObservationForm = (
     } finally {
       setLoading(false);
     }
-  }, [formData, observationService, isAuthenticated]);
+  }, [formData, availableImages, observationService, isAuthenticated]);
 
   const clearMessage = useCallback(() => {
     setMessage(null);
@@ -308,22 +305,17 @@ export const useObservationForm = (
     uploading,
     loading,
     message,
-    propertyKey,
-    propertyValue,
     
     // Actions
     handleInputChange,
     handleImageSelection,
     handleFileSelect,
     handleUploadImages,
-    addProperty,
-    removeProperty,
     getCurrentLocation,
     submitObservation,
     clearMessage,
-    setPropertyKey,
-    setPropertyValue,
     handleImageDescriptionChange,
-    handleLocationFromImage
+    handleLocationFromImage,
+    handleTimeFromImage
   };
 };

@@ -22,21 +22,16 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
     uploading,
     loading,
     message,
-    propertyKey,
-    propertyValue,
     handleInputChange,
     handleImageSelection,
     handleFileSelect,
     handleUploadImages,
-    addProperty,
-    removeProperty,
     getCurrentLocation,
     submitObservation,
     clearMessage,
-    setPropertyKey,
-    setPropertyValue,
     handleImageDescriptionChange,
-    handleLocationFromImage
+    handleLocationFromImage,
+    handleTimeFromImage
   } = useObservationForm(observationService, uploadService);
 
   const handleSubmit = async () => {
@@ -55,23 +50,18 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
       uploading={uploading}
       loading={loading}
       message={message}
-      propertyKey={propertyKey}
-      propertyValue={propertyValue}
       
       // Actions
       onInputChange={handleInputChange}
       onImageSelection={handleImageSelection}
       onFileSelect={handleFileSelect}
       onUploadImages={handleUploadImages}
-      onAddProperty={addProperty}
-      onRemoveProperty={removeProperty}
       onGetCurrentLocation={getCurrentLocation}
       onSubmit={handleSubmit}
       onClearMessage={clearMessage}
-      onPropertyKeyChange={setPropertyKey}
-      onPropertyValueChange={setPropertyValue}
       onImageDescriptionChange={handleImageDescriptionChange}
       onLocationFromImage={handleLocationFromImage}
+      onTimeFromImage={handleTimeFromImage}
     />
   );
 };

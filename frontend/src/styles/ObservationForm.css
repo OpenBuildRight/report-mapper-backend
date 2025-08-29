@@ -90,19 +90,49 @@
   border: 1px solid #c3e6cb;
 }
 
-.form-validation.invalid {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+.form-validation.incomplete {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
 }
 
-.form-validation ul {
-  margin: 10px 0 0 20px;
+.validation-progress {
+  margin-bottom: 15px;
+}
+
+.validation-progress .progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.validation-progress .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc107, #ffca2c);
+  transition: width 0.3s ease;
+}
+
+.missing-fields {
+  margin-top: 10px;
+}
+
+.missing-fields span {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.missing-fields ul {
+  margin: 5px 0 0 20px;
   padding: 0;
 }
 
-.form-validation li {
-  margin-bottom: 5px;
+.missing-fields li {
+  margin-bottom: 3px;
+  color: #856404;
 }
 
 /* Location Inputs */
@@ -219,16 +249,12 @@
   overflow: hidden;
   background: white;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .image-card:hover {
   border-color: #007bff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.image-card.selected {
-  border-color: #28a745;
-  background: #f8fff9;
 }
 
 .image-preview {
@@ -238,6 +264,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .image-preview img {
@@ -246,26 +273,36 @@
   object-fit: cover;
 }
 
-.image-info {
-  padding: 15px;
-}
-
-.image-selection {
-  margin-bottom: 10px;
+.image-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(220, 53, 69, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: 0;
 }
 
-.image-selection input[type="checkbox"] {
-  width: auto;
-  margin: 0;
+.image-card:hover .image-remove-btn {
+  opacity: 1;
 }
 
-.image-selection label {
-  margin: 0;
-  font-weight: normal;
-  cursor: pointer;
+.image-remove-btn:hover {
+  background: rgba(220, 53, 69, 1);
+  transform: scale(1.1);
+}
+
+.image-info {
+  padding: 15px;
 }
 
 .image-description {
@@ -467,17 +504,16 @@
     gap: 10px;
   }
   
-  .property-inputs {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  
   .image-grid {
     grid-template-columns: 1fr;
   }
   
   .form-section {
     padding: 15px;
+  }
+  
+  .image-remove-btn {
+    opacity: 1;
   }
 }
 
