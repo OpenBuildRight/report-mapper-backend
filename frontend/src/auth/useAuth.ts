@@ -1,5 +1,5 @@
 import { useAuth as useOidcAuth } from 'react-oidc-context';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 
 export interface AuthUser {
   access_token?: string;
@@ -33,6 +33,14 @@ export const useAuth = (): AuthState => {
       auth.signoutRedirect();
     }
   };
+
+  // Effect to sync OIDC user with localStorage token
+  useEffect(() => {
+    if (auth.user && auth.user.access_token) {
+      console.log('🔐 Syncing OIDC user token to localStorage');
+      localStorage.setItem('access_token', auth.user.access_token);
+    }
+  }, [auth.user]);
 
   // Check if user is authenticated - either by OIDC context or by having an access token
   const isAuthenticated = useMemo((): boolean => {
@@ -70,7 +78,7 @@ export const useAuth = (): AuthState => {
     
     console.log('❌ Not authenticated');
     return false;
-  }, [auth.isAuthenticated, auth.user, auth.isLoading]);
+  }, [auth.isAuthenticated, auth.user, auth.isLoading, auth]);
 
   return {
     isAuthenticated,

@@ -5,6 +5,7 @@ import HeaderContainer from './containers/HeaderContainer';
 import HomePageContainer from './containers/HomePageContainer';
 import LoginPage from './components/LoginPage';
 import ObservationFormContainer from './containers/ObservationFormContainer';
+import AuthDebug from './components/AuthDebug';
 import './App.css';
 
 interface ProtectedRouteProps {
@@ -47,6 +48,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="App">
+        <AuthDebug />
         <HeaderContainer />
         <main className="main-content">
           <Routes>
