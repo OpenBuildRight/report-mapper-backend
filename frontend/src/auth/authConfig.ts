@@ -6,6 +6,7 @@ export interface AuthConfig {
   response_type: string;
   scope: string;
   loadUserInfo: boolean;
+  pkce: boolean;
   onSigninCallback: (user: any) => void;
   onRemoveUser: () => void;
   onSigninError: (error: Error) => void;
@@ -20,6 +21,7 @@ export const authConfig: AuthConfig = {
   response_type: 'code',
   scope: process.env.REACT_APP_OIDC_SCOPE || 'openid profile email',
   loadUserInfo: true,
+  pkce: true,
   onSigninCallback: (user: any) => {
     console.log('🔐 Sign in callback triggered:', user);
     console.log('🔐 User access token:', user.access_token);

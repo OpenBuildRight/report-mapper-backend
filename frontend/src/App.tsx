@@ -5,7 +5,6 @@ import HeaderContainer from './containers/HeaderContainer';
 import HomePageContainer from './containers/HomePageContainer';
 import LoginPage from './components/LoginPage';
 import ObservationFormContainer from './containers/ObservationFormContainer';
-import AuthDebug from './components/AuthDebug';
 import AuthErrorModal from './components/AuthErrorModal';
 import './App.css';
 
@@ -140,7 +139,6 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="App">
-        <AuthDebug />
         <AuthErrorModal 
           error={error} 
           onClose={clearError} 

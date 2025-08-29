@@ -4,9 +4,13 @@ import { AuthError } from '../components/AuthErrorModal';
 
 export interface AuthUser {
   access_token?: string;
+  id_token?: string;
   name?: string;
   email?: string;
   sub?: string;
+  given_name?: string;
+  family_name?: string;
+  preferred_username?: string;
   [key: string]: any;
 }
 
@@ -42,6 +46,34 @@ export const useAuth = (): AuthState => {
   const clearError = (): void => {
     setError(null);
   };
+
+  // Extract user information from OIDC user profile
+  const user = useMemo((): AuthUser | null => {
+    if (!auth.user) return null;
+    
+    const profile = auth.user.profile;
+    const userInfo: AuthUser = {
+      access_token: auth.user.access_token,
+      id_token: auth.user.id_token,
+      sub: profile?.sub,
+      name: profile?.name || profile?.preferred_username,
+      email: profile?.email,
+      given_name: profile?.given_name,
+      family_name: profile?.family_name,
+      preferred_username: profile?.preferred_username,
+    };
+    
+    // Add any additional claims from the profile
+    if (profile) {
+      Object.keys(profile).forEach(key => {
+        if (!userInfo[key]) {
+          userInfo[key] = profile[key];
+        }
+      });
+    }
+    
+    return userInfo;
+  }, [auth.user]);
 
   // Effect to sync OIDC user with localStorage token
   useEffect(() => {
@@ -111,7 +143,7 @@ export const useAuth = (): AuthState => {
       oidcAuthenticated: hasOidcAuth,
       hasToken: hasToken,
       hasUser: hasUser,
-      user: auth.user,
+      user: user,
       isLoading: auth.isLoading,
       hasError: !!auth.error,
       authState: auth
@@ -144,12 +176,12 @@ export const useAuth = (): AuthState => {
     
     console.log('❌ Not authenticated');
     return false;
-  }, [auth.isAuthenticated, auth.user, auth.isLoading, auth.error, auth]);
+  }, [auth.isAuthenticated, auth.user, auth.isLoading, auth.error, user, auth]);
 
   return {
     isAuthenticated,
     isLoading: auth.isLoading,
-    user: auth.user as AuthUser | null,
+    user,
     error,
     getAccessToken,
     logout,

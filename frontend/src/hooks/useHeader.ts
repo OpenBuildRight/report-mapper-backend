@@ -39,6 +39,11 @@ export const useHeader = () => {
   const getUserInitials = (): string => {
     if (!user) return 'U';
     
+    // Try to get initials from given_name and family_name
+    if (user.given_name && user.family_name) {
+      return `${user.given_name[0]}${user.family_name[0]}`.toUpperCase();
+    }
+    
     // Try to get initials from name property
     if (user.name) {
       const names = user.name.split(' ');
@@ -46,6 +51,11 @@ export const useHeader = () => {
         return `${names[0][0]}${names[1][0]}`.toUpperCase();
       }
       return user.name[0].toUpperCase();
+    }
+    
+    // Try to get initials from preferred_username
+    if (user.preferred_username) {
+      return user.preferred_username[0].toUpperCase();
     }
     
     // Fallback to email

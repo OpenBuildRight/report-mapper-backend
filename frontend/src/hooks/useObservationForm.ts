@@ -69,30 +69,10 @@ export const useObservationForm = (
 
   // Load available images only if authenticated
   useEffect(() => {
-    const loadImages = async () => {
-      if (!isAuthenticated) {
-        setAvailableImages([]);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const images = await observationService.getAvailableImages();
-        setAvailableImages(images);
-      } catch (error) {
-        console.error('Failed to load images:', error);
-        setMessage({ 
-          type: 'error', 
-          text: 'Failed to load available images. Please try again.' 
-        });
-        setAvailableImages([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadImages();
-  }, [observationService, isAuthenticated]);
+    // Don't automatically load images - user should start with no images
+    // and only see them after uploading
+    setAvailableImages([]);
+  }, [isAuthenticated]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -137,12 +117,18 @@ export const useObservationForm = (
         text: `Successfully uploaded ${results.length} image(s)!` 
       });
       
-      // Clear uploaded images and refresh available images
+      // Clear uploaded images
       setUploadedImages([]);
       
-      // Reload available images to include the newly uploaded ones
-      const images = await observationService.getAvailableImages();
-      setAvailableImages(images);
+      // Add newly uploaded images to available images list
+      const newImages = results.map(result => ({
+        id: result.id,
+        filename: result.filename,
+        url: result.url,
+        uploadedAt: new Date().toISOString() // Use current time as uploadedAt
+      }));
+      
+      setAvailableImages(prev => [...prev, ...newImages]);
 
       return results;
     } catch (error: any) {
@@ -155,7 +141,7 @@ export const useObservationForm = (
     } finally {
       setUploading(false);
     }
-  }, [uploadedImages, uploadService, observationService, isAuthenticated]);
+  }, [uploadedImages, uploadService, isAuthenticated]);
 
   const addProperty = useCallback(() => {
     if (propertyKey && propertyValue) {
