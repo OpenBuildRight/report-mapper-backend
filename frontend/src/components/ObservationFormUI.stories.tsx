@@ -1,6 +1,10 @@
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
 import ObservationFormUI from './ObservationFormUI';
+import { FormData, Message } from '../hooks/useObservationForm';
+import { Image } from '../services/observationService';
 
-export default {
+const meta: Meta<typeof ObservationFormUI> = {
   title: 'Components/ObservationFormUI',
   component: ObservationFormUI,
   parameters: {
@@ -24,8 +28,30 @@ export default {
   }
 };
 
+export default meta;
+type Story = StoryObj<typeof ObservationFormUI>;
+
+const defaultImages: Image[] = [
+  { id: 'demo-image-1', description: 'Demo Image 1', filename: 'demo1.jpg', url: 'url1', uploadedAt: '2023-01-01' },
+  { id: 'demo-image-2', description: 'Demo Image 2', filename: 'demo2.jpg', url: 'url2', uploadedAt: '2023-01-02' }
+];
+
+const defaultHandlers = {
+  onInputChange: () => {},
+  onImageSelection: () => {},
+  onFileSelect: () => {},
+  onUploadImages: async () => {},
+  onAddProperty: () => {},
+  onRemoveProperty: () => {},
+  onGetCurrentLocation: () => {},
+  onSubmit: () => {},
+  onClearMessage: () => {},
+  onPropertyKeyChange: () => {},
+  onPropertyValueChange: () => {},
+};
+
 // Default story
-export const Default = {
+export const Default: Story = {
   args: {
     formData: {
       title: '',
@@ -35,20 +61,20 @@ export const Default = {
       longitude: '',
       imageIds: [],
       properties: {}
-    },
-    availableImages: [
-      { id: 'demo-image-1', description: 'Demo Image 1' },
-      { id: 'demo-image-2', description: 'Demo Image 2' }
-    ],
+    } as FormData,
+    availableImages: defaultImages,
+    uploadedImages: [],
+    uploading: false,
     loading: false,
     message: null,
     propertyKey: '',
-    propertyValue: ''
+    propertyValue: '',
+    ...defaultHandlers
   }
 };
 
 // Story with pre-filled data
-export const WithData = {
+export const WithData: Story = {
   args: {
     formData: {
       title: 'Broken Street Light',
@@ -58,20 +84,20 @@ export const WithData = {
       longitude: '-74.0060',
       imageIds: ['demo-image-1'],
       properties: { severity: 'high', type: 'infrastructure' }
-    },
-    availableImages: [
-      { id: 'demo-image-1', description: 'Demo Image 1' },
-      { id: 'demo-image-2', description: 'Demo Image 2' }
-    ],
+    } as FormData,
+    availableImages: defaultImages,
+    uploadedImages: [],
+    uploading: false,
     loading: false,
     message: null,
     propertyKey: '',
-    propertyValue: ''
+    propertyValue: '',
+    ...defaultHandlers
   }
 };
 
 // Story with success message
-export const WithSuccessMessage = {
+export const WithSuccessMessage: Story = {
   args: {
     formData: {
       title: '',
@@ -81,20 +107,20 @@ export const WithSuccessMessage = {
       longitude: '',
       imageIds: [],
       properties: {}
-    },
-    availableImages: [
-      { id: 'demo-image-1', description: 'Demo Image 1' },
-      { id: 'demo-image-2', description: 'Demo Image 2' }
-    ],
+    } as FormData,
+    availableImages: defaultImages,
+    uploadedImages: [],
+    uploading: false,
     loading: false,
-    message: { type: 'success', text: 'Observation created successfully! ID: 123' },
+    message: { type: 'success', text: 'Observation created successfully! ID: 123' } as Message,
     propertyKey: '',
-    propertyValue: ''
+    propertyValue: '',
+    ...defaultHandlers
   }
 };
 
 // Story with error message
-export const WithErrorMessage = {
+export const WithErrorMessage: Story = {
   args: {
     formData: {
       title: '',
@@ -104,20 +130,20 @@ export const WithErrorMessage = {
       longitude: '',
       imageIds: [],
       properties: {}
-    },
-    availableImages: [
-      { id: 'demo-image-1', description: 'Demo Image 1' },
-      { id: 'demo-image-2', description: 'Demo Image 2' }
-    ],
+    } as FormData,
+    availableImages: defaultImages,
+    uploadedImages: [],
+    uploading: false,
     loading: false,
-    message: { type: 'error', text: 'Failed to create observation. Please try again.' },
+    message: { type: 'error', text: 'Failed to create observation. Please try again.' } as Message,
     propertyKey: '',
-    propertyValue: ''
+    propertyValue: '',
+    ...defaultHandlers
   }
 };
 
 // Story with loading state
-export const Loading = {
+export const Loading: Story = {
   args: {
     formData: {
       title: 'Test Observation',
@@ -127,14 +153,14 @@ export const Loading = {
       longitude: '-74.0060',
       imageIds: ['demo-image-1'],
       properties: { severity: 'medium' }
-    },
-    availableImages: [
-      { id: 'demo-image-1', description: 'Demo Image 1' },
-      { id: 'demo-image-2', description: 'Demo Image 2' }
-    ],
+    } as FormData,
+    availableImages: defaultImages,
+    uploadedImages: [],
+    uploading: false,
     loading: true,
     message: null,
     propertyKey: '',
-    propertyValue: ''
+    propertyValue: '',
+    ...defaultHandlers
   }
 };

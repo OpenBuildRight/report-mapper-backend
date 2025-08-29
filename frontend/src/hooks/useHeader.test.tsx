@@ -55,7 +55,7 @@ describe('useHeader', () => {
   test('should handle logout', () => {
     const mockSignoutRedirect = jest.fn();
     mockUseAuth.mockReturnValue({
-      user: { profile: { name: 'John Doe' } },
+      user: { name: 'John Doe' },
       signoutRedirect: mockSignoutRedirect,
       isAuthenticated: true
     });

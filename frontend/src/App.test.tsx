@@ -37,7 +37,7 @@ jest.mock('./components/LoginPage', () => {
 });
 
 // Test component that extracts the routing logic from App
-const TestApp = ({ initialEntries = ['/'] }) => {
+const TestApp: React.FC<{ initialEntries?: string[] }> = ({ initialEntries = ['/'] }) => {
   const { isLoading, isAuthenticated } = mockUseAuth();
 
   if (isLoading) {

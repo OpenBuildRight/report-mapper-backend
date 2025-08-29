@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ObservationFormUI from './ObservationFormUI';
+import { FormData, Message } from '../hooks/useObservationForm';
+import { Image } from '../services/observationService';
 
 // Mock the Map component
 jest.mock('./Map', () => {
@@ -22,25 +24,25 @@ describe('ObservationFormUI', () => {
       longitude: '',
       properties: {},
       imageIds: []
-    },
-    availableImages: [],
-    uploadedImages: [],
+    } as FormData,
+    availableImages: [] as Image[],
+    uploadedImages: [] as File[],
     uploading: false,
     loading: false,
-    message: null,
+    message: null as Message | null,
     propertyKey: '',
     propertyValue: '',
-    onInputChange: jest.fn(),
-    onImageSelection: jest.fn(),
-    onFileSelect: jest.fn(),
-    onUploadImages: jest.fn(),
-    onAddProperty: jest.fn(),
-    onRemoveProperty: jest.fn(),
-    onGetCurrentLocation: jest.fn(),
-    onSubmit: jest.fn(),
-    onClearMessage: jest.fn(),
-    onPropertyKeyChange: jest.fn(),
-    onPropertyValueChange: jest.fn()
+    onInputChange: jest.fn() as jest.MockedFunction<(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void>,
+    onImageSelection: jest.fn() as jest.MockedFunction<(imageId: string) => void>,
+    onFileSelect: jest.fn() as jest.MockedFunction<(files: File[]) => void>,
+    onUploadImages: jest.fn() as jest.MockedFunction<() => Promise<any>>,
+    onAddProperty: jest.fn() as jest.MockedFunction<() => void>,
+    onRemoveProperty: jest.fn() as jest.MockedFunction<(key: string) => void>,
+    onGetCurrentLocation: jest.fn() as jest.MockedFunction<() => void>,
+    onSubmit: jest.fn() as jest.MockedFunction<() => void>,
+    onClearMessage: jest.fn() as jest.MockedFunction<() => void>,
+    onPropertyKeyChange: jest.fn() as jest.MockedFunction<(value: string) => void>,
+    onPropertyValueChange: jest.fn() as jest.MockedFunction<(value: string) => void>
   };
 
   beforeEach(() => {
@@ -93,14 +95,14 @@ describe('ObservationFormUI', () => {
   });
 
   test('should display message when provided', () => {
-    const message = { type: 'success', text: 'Observation created successfully!' };
+    const message: Message = { type: 'success', text: 'Observation created successfully!' };
     render(<ObservationFormUI {...defaultProps} message={message} />);
     
     expect(screen.getByText('Observation created successfully!')).toBeInTheDocument();
   });
 
   test('should call onClearMessage when message close button is clicked', () => {
-    const message = { type: 'error', text: 'An error occurred' };
+    const message: Message = { type: 'error', text: 'An error occurred' };
     render(<ObservationFormUI {...defaultProps} message={message} />);
     
     const closeButton = screen.getByRole('button', { name: '×' });
@@ -110,9 +112,9 @@ describe('ObservationFormUI', () => {
   });
 
   test('should display available images when provided', () => {
-    const availableImages = [
-      { id: '1', description: 'image1.jpg' },
-      { id: '2', description: 'image2.jpg' }
+    const availableImages: Image[] = [
+      { id: '1', description: 'image1.jpg', filename: 'image1.jpg', url: 'url1', uploadedAt: '2023-01-01' },
+      { id: '2', description: 'image2.jpg', filename: 'image2.jpg', url: 'url2', uploadedAt: '2023-01-02' }
     ];
     render(<ObservationFormUI {...defaultProps} availableImages={availableImages} />);
     
@@ -121,7 +123,7 @@ describe('ObservationFormUI', () => {
   });
 
   test('should call onImageSelection when image is selected', () => {
-    const availableImages = [{ id: '1', description: 'image1.jpg' }];
+    const availableImages: Image[] = [{ id: '1', description: 'image1.jpg', filename: 'image1.jpg', url: 'url1', uploadedAt: '2023-01-01' }];
     render(<ObservationFormUI {...defaultProps} availableImages={availableImages} />);
     
     const imageCheckbox = screen.getByRole('checkbox');
@@ -141,7 +143,7 @@ describe('ObservationFormUI', () => {
   });
 
   test('should display custom properties when they exist', () => {
-    const formDataWithProperties = {
+    const formDataWithProperties: FormData = {
       ...defaultProps.formData,
       properties: {
         weather: 'sunny',
@@ -155,7 +157,7 @@ describe('ObservationFormUI', () => {
   });
 
   test('should call onRemoveProperty when property remove button is clicked', () => {
-    const formDataWithProperties = {
+    const formDataWithProperties: FormData = {
       ...defaultProps.formData,
       properties: { weather: 'sunny' }
     };
@@ -191,13 +193,13 @@ describe('ObservationFormUI', () => {
     const dropzone = screen.getByText('Drag & drop images here, or click to select files').closest('div');
     const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     
-    fireEvent.drop(dropzone, { dataTransfer: { files: [file] } });
+    fireEvent.drop(dropzone!, { dataTransfer: { files: [file] } });
     
     expect(defaultProps.onFileSelect).toHaveBeenCalledWith([file]);
   });
 
   test('should display uploaded image previews', () => {
-    const uploadedImages = [
+    const uploadedImages: File[] = [
       new File(['test1'], 'image1.jpg', { type: 'image/jpeg' }),
       new File(['test2'], 'image2.jpg', { type: 'image/jpeg' })
     ];
@@ -208,14 +210,14 @@ describe('ObservationFormUI', () => {
   });
 
   test('should show upload button when images are selected', () => {
-    const uploadedImages = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
+    const uploadedImages: File[] = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
     render(<ObservationFormUI {...defaultProps} uploadedImages={uploadedImages} />);
     
     expect(screen.getByText('Upload Images')).toBeInTheDocument();
   });
 
   test('should call onUploadImages when upload button is clicked', () => {
-    const uploadedImages = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
+    const uploadedImages: File[] = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
     render(<ObservationFormUI {...defaultProps} uploadedImages={uploadedImages} />);
     
     const uploadButton = screen.getByText('Upload Images');
@@ -225,14 +227,14 @@ describe('ObservationFormUI', () => {
   });
 
   test('should show uploading state when uploading', () => {
-    const uploadedImages = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
+    const uploadedImages: File[] = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
     render(<ObservationFormUI {...defaultProps} uploadedImages={uploadedImages} uploading={true} />);
     
     expect(screen.getByText('Uploading...')).toBeInTheDocument();
   });
 
   test('should disable upload button when uploading', () => {
-    const uploadedImages = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
+    const uploadedImages: File[] = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
     render(<ObservationFormUI {...defaultProps} uploadedImages={uploadedImages} uploading={true} />);
     
     const uploadButton = screen.getByText('Uploading...');

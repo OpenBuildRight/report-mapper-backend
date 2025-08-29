@@ -1,28 +1,9 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import type { Meta, StoryObj } from '@storybook/react';
 import LoginPage from './LoginPage';
 
-// Mock the useAuth hook
-const mockUseAuth = {
-  signinRedirect: () => {},
-  isLoading: false,
-  isAuthenticated: false
-};
-
-// Mock the useNavigate hook
-const mockNavigate = () => {};
-
-// Mock the modules
-jest.mock('../auth/useAuth', () => ({
-  useAuth: () => mockUseAuth
-}));
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate
-}));
-
-export default {
+const meta: Meta<typeof LoginPage> = {
   title: 'Components/LoginPage',
   component: LoginPage,
   parameters: {
@@ -37,38 +18,34 @@ export default {
   ],
 };
 
-const Template = (args) => {
-  // Update the mock values based on args
-  mockUseAuth.isLoading = args.isLoading || false;
-  mockUseAuth.isAuthenticated = args.isAuthenticated || false;
-  mockUseAuth.signinRedirect = args.signinRedirect || (() => {});
-  
-  return <LoginPage {...args} />;
+export default meta;
+type Story = StoryObj<typeof LoginPage>;
+
+const Template: Story = {
+  render: (args) => <LoginPage {...args} />,
 };
 
-export const Default = Template.bind({});
-Default.args = {
-  isLoading: false,
-  isAuthenticated: false,
-  signinRedirect: () => console.log('Sign in clicked'),
+export const Default: Story = {
+  ...Template,
+  args: {},
 };
 
-export const Loading = Template.bind({});
-Loading.args = {
-  isLoading: true,
-  isAuthenticated: false,
-  signinRedirect: () => console.log('Sign in clicked'),
+export const Loading: Story = {
+  ...Template,
+  args: {},
 };
 
-export const Authenticated = Template.bind({});
-Authenticated.args = {
-  isLoading: false,
-  isAuthenticated: true,
-  signinRedirect: () => console.log('Sign in clicked'),
+export const Authenticated: Story = {
+  ...Template,
+  args: {},
 };
 
 // Alternative approach without mocking - create a wrapper component
-const LoginPageWrapper = ({ isLoading, isAuthenticated, signinRedirect }) => {
+const LoginPageWrapper: React.FC<{
+  isLoading?: boolean;
+  isAuthenticated?: boolean;
+  signinRedirect?: () => void;
+}> = ({ isLoading = false, isAuthenticated = false, signinRedirect = () => console.log('Sign in clicked') }) => {
   // Mock localStorage
   const originalGetItem = localStorage.getItem;
   const originalRemoveItem = localStorage.removeItem;
@@ -121,8 +98,8 @@ const LoginPageWrapper = ({ isLoading, isAuthenticated, signinRedirect }) => {
             width: '100%',
             transition: 'background 0.3s ease'
           }}
-          onMouseOver={(e) => e.target.style.background = '#2980b9'}
-          onMouseOut={(e) => e.target.style.background = '#3498db'}
+          onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = '#2980b9'}
+          onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = '#3498db'}
         >
           Sign In
         </button>
@@ -137,9 +114,11 @@ const LoginPageWrapper = ({ isLoading, isAuthenticated, signinRedirect }) => {
   );
 };
 
-export const LoginPageUI = (args) => <LoginPageWrapper {...args} />;
-LoginPageUI.args = {
-  isLoading: false,
-  isAuthenticated: false,
-  signinRedirect: () => console.log('Sign in clicked'),
+export const LoginPageUI: Story = {
+  render: (args) => <LoginPageWrapper {...args} />,
+  args: {
+    isLoading: false,
+    isAuthenticated: false,
+    signinRedirect: () => console.log('Sign in clicked'),
+  },
 };

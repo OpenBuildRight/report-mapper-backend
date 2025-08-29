@@ -14,7 +14,7 @@ jest.mock('../auth/useAuth', () => ({
 }));
 
 // Wrapper component to provide router context
-const renderWithRouter = (component) => {
+const renderWithRouter = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>
       {component}

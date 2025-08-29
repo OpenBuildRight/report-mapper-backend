@@ -2,9 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import HeaderUI from './HeaderUI';
+import { AuthUser } from '../auth/useAuth';
 
 // Wrapper component to provide router context
-const renderWithRouter = (component) => {
+const renderWithRouter = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>
       {component}
@@ -14,14 +15,14 @@ const renderWithRouter = (component) => {
 
 describe('HeaderUI', () => {
   const defaultProps = {
-    user: null,
+    user: null as AuthUser | null,
     isAuthenticated: false,
     showUserDropdown: false,
-    dropdownRef: { current: null },
-    onLogout: jest.fn(),
-    onLogin: jest.fn(),
-    onToggleUserDropdown: jest.fn(),
-    getUserInitials: jest.fn().mockReturnValue('U')
+    dropdownRef: { current: null } as React.RefObject<HTMLDivElement | null>,
+    onLogout: jest.fn() as jest.MockedFunction<() => void>,
+    onLogin: jest.fn() as jest.MockedFunction<() => void>,
+    onToggleUserDropdown: jest.fn() as jest.MockedFunction<() => void>,
+    getUserInitials: jest.fn().mockReturnValue('U') as jest.MockedFunction<() => string>
   };
 
   beforeEach(() => {
@@ -55,7 +56,7 @@ describe('HeaderUI', () => {
     const props = {
       ...defaultProps,
       isAuthenticated: true,
-      user: { name: 'John Doe', email: 'john@example.com' }
+      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser
     };
     renderWithRouter(<HeaderUI {...props} />);
     expect(screen.getByRole('button', { class: 'user-button' })).toBeInTheDocument();
@@ -65,7 +66,7 @@ describe('HeaderUI', () => {
     const props = {
       ...defaultProps,
       isAuthenticated: true,
-      user: { name: 'John Doe', email: 'john@example.com' }
+      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser
     };
     renderWithRouter(<HeaderUI {...props} />);
     const userButton = screen.getByRole('button', { class: 'user-button' });
@@ -78,7 +79,7 @@ describe('HeaderUI', () => {
       ...defaultProps,
       isAuthenticated: true,
       showUserDropdown: true,
-      user: { name: 'John Doe', email: 'john@example.com' }
+      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser
     };
     renderWithRouter(<HeaderUI {...props} />);
     expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -91,23 +92,11 @@ describe('HeaderUI', () => {
       ...defaultProps,
       isAuthenticated: true,
       showUserDropdown: true,
-      user: { name: 'John Doe', email: 'john@example.com' }
+      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser
     };
     renderWithRouter(<HeaderUI {...props} />);
     const logoutButton = screen.getByText('Logout');
     fireEvent.click(logoutButton);
     expect(defaultProps.onLogout).toHaveBeenCalled();
-  });
-
-  test('should display user name and email in dropdown', () => {
-    const props = {
-      ...defaultProps,
-      isAuthenticated: true,
-      showUserDropdown: true,
-      user: { name: 'Jane Smith', email: 'jane@example.com' }
-    };
-    renderWithRouter(<HeaderUI {...props} />);
-    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
   });
 });

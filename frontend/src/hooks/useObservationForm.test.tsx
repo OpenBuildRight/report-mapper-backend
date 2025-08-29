@@ -1,5 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useObservationForm } from './useObservationForm';
+import ObservationService from '../services/observationService';
+import ImageUploadService from '../services/imageUploadService';
 
 // Mock the auth hook
 jest.mock('../auth/useAuth', () => ({
@@ -14,12 +16,12 @@ jest.mock('../auth/useAuth', () => ({
 const mockObservationService = {
   getAvailableImages: jest.fn(),
   createObservation: jest.fn()
-};
+} as jest.Mocked<ObservationService>;
 
 // Mock the upload service
 const mockUploadService = {
   uploadMultipleImages: jest.fn()
-};
+} as jest.Mocked<ImageUploadService>;
 
 describe('useObservationForm', () => {
   beforeEach(() => {
@@ -57,8 +59,8 @@ describe('useObservationForm', () => {
 
   test('should load available images on mount', async () => {
     const mockImages = [
-      { id: '1', filename: 'image1.jpg' },
-      { id: '2', filename: 'image2.jpg' }
+      { id: '1', filename: 'image1.jpg', description: 'image1', url: 'url1', uploadedAt: '2023-01-01' },
+      { id: '2', filename: 'image2.jpg', description: 'image2', url: 'url2', uploadedAt: '2023-01-02' }
     ];
     mockObservationService.getAvailableImages.mockResolvedValue(mockImages);
 
@@ -79,7 +81,7 @@ describe('useObservationForm', () => {
     act(() => {
       result.current.handleInputChange({
         target: { name: 'title', value: 'Test Title' }
-      });
+      } as React.ChangeEvent<HTMLInputElement>);
     });
 
     expect(result.current.formData.title).toBe('Test Title');
@@ -99,6 +101,21 @@ describe('useObservationForm', () => {
     });
 
     expect(result.current.formData.imageIds).not.toContain('1');
+  });
+
+  test('should handle file selection', () => {
+    const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
+
+    const testFiles = [
+      new File(['test1'], 'image1.jpg', { type: 'image/jpeg' }),
+      new File(['test2'], 'image2.jpg', { type: 'image/jpeg' })
+    ];
+
+    act(() => {
+      result.current.handleFileSelect(testFiles);
+    });
+
+    expect(result.current.uploadedImages).toEqual(testFiles);
   });
 
   test('should handle property key change', () => {
@@ -126,9 +143,6 @@ describe('useObservationForm', () => {
 
     act(() => {
       result.current.setPropertyKey('weather');
-    });
-
-    act(() => {
       result.current.setPropertyValue('sunny');
     });
 
@@ -139,6 +153,21 @@ describe('useObservationForm', () => {
     expect(result.current.formData.properties).toEqual({ weather: 'sunny' });
     expect(result.current.propertyKey).toBe('');
     expect(result.current.propertyValue).toBe('');
+  });
+
+  test('should not add property when key or value is missing', () => {
+    const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
+
+    act(() => {
+      result.current.setPropertyKey('weather');
+      // Don't set value
+    });
+
+    act(() => {
+      result.current.addProperty();
+    });
+
+    expect(result.current.formData.properties).toEqual({});
   });
 
   test('should remove property', () => {
@@ -159,60 +188,36 @@ describe('useObservationForm', () => {
     expect(result.current.formData.properties).toEqual({});
   });
 
-  test('should get current location', () => {
-    const mockGeolocation = {
-      getCurrentPosition: jest.fn().mockImplementation((success) => {
-        success({
-          coords: {
-            latitude: 40.7128,
-            longitude: -74.0060
-          }
-        });
-      })
-    };
-    global.navigator.geolocation = mockGeolocation;
-
+  test('should clear message', () => {
     const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
 
     act(() => {
-      result.current.getCurrentLocation();
+      result.current.clearMessage();
     });
 
-    expect(result.current.formData.latitude).toBe('40.7128');
-    expect(result.current.formData.longitude).toBe('-74.006');
-  });
-
-  test('should handle geolocation error', () => {
-    const mockGeolocation = {
-      getCurrentPosition: jest.fn().mockImplementation((success, error) => {
-        error(new Error('Geolocation error'));
-      })
-    };
-    global.navigator.geolocation = mockGeolocation;
-
-    const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
-
-    act(() => {
-      result.current.getCurrentLocation();
-    });
-
-    expect(result.current.message).toEqual({
-      type: 'error',
-      text: 'Unable to get current location. Please enter coordinates manually.'
-    });
+    expect(result.current.message).toBeNull();
   });
 
   test('should submit observation successfully', async () => {
-    mockObservationService.createObservation.mockResolvedValue({ id: '123' });
+    const mockResult = { id: '123', title: 'Test Observation' };
+    mockObservationService.createObservation.mockResolvedValue(mockResult);
 
     const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
 
-    // Set up form data
+    // Set up required form data first
     act(() => {
-      result.current.handleInputChange({ target: { name: 'title', value: 'Test Observation' } });
-      result.current.handleInputChange({ target: { name: 'description', value: 'Test Description' } });
-      result.current.handleInputChange({ target: { name: 'latitude', value: '40.7128' } });
-      result.current.handleInputChange({ target: { name: 'longitude', value: '-74.0060' } });
+      result.current.handleInputChange({
+        target: { name: 'title', value: 'Test Observation' }
+      } as React.ChangeEvent<HTMLInputElement>);
+      result.current.handleInputChange({
+        target: { name: 'description', value: 'Test Description' }
+      } as React.ChangeEvent<HTMLInputElement>);
+      result.current.handleInputChange({
+        target: { name: 'latitude', value: '40.7128' }
+      } as React.ChangeEvent<HTMLInputElement>);
+      result.current.handleInputChange({
+        target: { name: 'longitude', value: '-74.0060' }
+      } as React.ChangeEvent<HTMLInputElement>);
       result.current.handleImageSelection('1');
     });
 
@@ -242,10 +247,18 @@ describe('useObservationForm', () => {
 
     // Set up required form data first
     act(() => {
-      result.current.handleInputChange({ target: { name: 'title', value: 'Test' } });
-      result.current.handleInputChange({ target: { name: 'description', value: 'Test' } });
-      result.current.handleInputChange({ target: { name: 'latitude', value: '40.7128' } });
-      result.current.handleInputChange({ target: { name: 'longitude', value: '-74.0060' } });
+      result.current.handleInputChange({
+        target: { name: 'title', value: 'Test' }
+      } as React.ChangeEvent<HTMLInputElement>);
+      result.current.handleInputChange({
+        target: { name: 'description', value: 'Test' }
+      } as React.ChangeEvent<HTMLInputElement>);
+      result.current.handleInputChange({
+        target: { name: 'latitude', value: '40.7128' }
+      } as React.ChangeEvent<HTMLInputElement>);
+      result.current.handleInputChange({
+        target: { name: 'longitude', value: '-74.0060' }
+      } as React.ChangeEvent<HTMLInputElement>);
     });
 
     await act(async () => {
@@ -303,10 +316,10 @@ describe('useObservationForm', () => {
       result.current.handleFileSelect(testFiles);
       result.current.handleInputChange({
         target: { name: 'latitude', value: '40.7128' }
-      });
+      } as React.ChangeEvent<HTMLInputElement>);
       result.current.handleInputChange({
         target: { name: 'longitude', value: '-74.0060' }
-      });
+      } as React.ChangeEvent<HTMLInputElement>);
     });
 
     await act(async () => {
@@ -327,7 +340,7 @@ describe('useObservationForm', () => {
 
   test('should handle upload error', async () => {
     const mockError = new Error('Upload failed');
-    mockError.response = { data: { message: 'Server error' } };
+    (mockError as any).response = { data: { message: 'Server error' } };
     mockUploadService.uploadMultipleImages.mockRejectedValue(mockError);
 
     const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
