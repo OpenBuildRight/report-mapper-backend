@@ -8,13 +8,16 @@ export const authConfig = {
   loadUserInfo: true,
   onSigninCallback: (user) => {
     console.log('🔐 Sign in callback triggered:', user);
+    console.log('🔐 User access token:', user.access_token);
     // Store the access token for API calls
     localStorage.setItem('access_token', user.access_token);
+    console.log('🔐 Access token stored in localStorage');
   },
   onRemoveUser: () => {
     console.log('🔐 Sign out callback triggered');
     // Clear the access token when user logs out
     localStorage.removeItem('access_token');
+    console.log('🔐 Access token removed from localStorage');
   },
   onSigninError: (error) => {
     console.error('🔐 Sign in error:', error);

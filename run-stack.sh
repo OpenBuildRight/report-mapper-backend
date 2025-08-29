@@ -15,16 +15,14 @@ done
 echo "Backend started"
 
 # Run the frontend
-cd frontend
-npm install
-npm start
+cd frontend;
 
-echo "starting frontend"
+# Source nvm so it's available in the script
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-until curl -s http://localhost:3000 > /dev/null; do
-    echo "Waiting for frontend to start..."
-    sleep 1
-done
-echo "Frontend started"
+nvm use;
+pnpm install;
+pnpm start;
 
-echo "Stack started"

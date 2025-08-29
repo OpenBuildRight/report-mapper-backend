@@ -1,4 +1,5 @@
 import { useAuth as useOidcAuth } from 'react-oidc-context';
+import { useMemo } from 'react';
 
 export const useAuth = () => {
   const auth = useOidcAuth();
@@ -16,7 +17,7 @@ export const useAuth = () => {
   };
 
   // Check if user is authenticated - either by OIDC context or by having an access token
-  const isAuthenticated = () => {
+  const isAuthenticated = useMemo(() => {
     const hasOidcAuth = auth.isAuthenticated;
     const hasToken = !!getAccessToken();
     const hasUser = !!auth.user;
@@ -51,15 +52,13 @@ export const useAuth = () => {
     
     console.log('❌ Not authenticated');
     return false;
-  };
-
-  const isUserAuthenticated = isAuthenticated();
+  }, [auth.isAuthenticated, auth.user, auth.isLoading]);
 
   return {
     ...auth,
     getAccessToken,
     logout,
-    isAuthenticated: isUserAuthenticated,
+    isAuthenticated,
     user: auth.user
   };
 };
