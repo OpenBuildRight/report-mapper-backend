@@ -46,17 +46,13 @@ class ObservationService {
     this.apiClient = apiClient;
   }
 
-  async createObservation(observationData: ObservationData): Promise<Observation> {
-    const response = await this.apiClient.post('/observation', observationData, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  async createObservation(data: ObservationData): Promise<Observation> {
+    const response = await this.apiClient.post('/observation', data);
     return response.data;
   }
 
-  async getObservations(): Promise<Observation[]> {
-    const response = await this.apiClient.get('/observation');
+  async updateObservation(id: string, data: ObservationData): Promise<Observation> {
+    const response = await this.apiClient.put(`/observation/${id}`, data);
     return response.data;
   }
 
@@ -65,17 +61,23 @@ class ObservationService {
     return response.data;
   }
 
-  async updateObservation(id: string, observationData: Partial<ObservationData>): Promise<Observation> {
-    const response = await this.apiClient.put(`/observation/${id}`, observationData, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  async getDraftObservation(id: string): Promise<Observation> {
+    const response = await this.apiClient.get(`/observation/draft/${id}`);
     return response.data;
   }
 
-  async deleteObservation(id: string): Promise<void> {
-    const response = await this.apiClient.delete(`/observation/${id}`);
+  async getMyDraftObservations(): Promise<Observation[]> {
+    const response = await this.apiClient.get('/observation/my-drafts');
+    return response.data;
+  }
+
+  async getPublishedObservations(): Promise<Observation[]> {
+    const response = await this.apiClient.get('/observation/published');
+    return response.data;
+  }
+
+  async getAllObservations(): Promise<Observation[]> {
+    const response = await this.apiClient.get('/observation');
     return response.data;
   }
 

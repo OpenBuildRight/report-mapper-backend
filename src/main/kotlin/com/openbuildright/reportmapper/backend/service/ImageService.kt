@@ -88,23 +88,6 @@ class ImageService(
     }
 
     /**
-     * Check if an image is accessible to a specific user
-     * An image is accessible if it's part of any observation created by that user
-     */
-    fun isImageAccessibleToUser(imageId: String, username: String): Boolean {
-        return try {
-            // Check if the image is part of any observation created by this user
-            val observations = observationService.getObservationsByUser(username)
-            observations.any { observation ->
-                observation.imageIds.contains(imageId)
-            }
-        } catch (e: Exception) {
-            // If there's any error checking access, deny access
-            false
-        }
-    }
-
-    /**
      * Check if an image is published (part of an enabled observation)
      */
     fun isImagePublished(imageId: String): Boolean {

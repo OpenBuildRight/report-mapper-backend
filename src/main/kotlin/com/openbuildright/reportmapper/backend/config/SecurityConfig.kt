@@ -2,6 +2,7 @@ package com.openbuildright.reportmapper.backend.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
@@ -12,6 +13,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
     private val corsConfig: CorsConfig
 ) {
@@ -27,9 +29,6 @@ class SecurityConfig(
                     "/v3/api-docs/*",
                     "/image/published/**"  // Allow published images without authentication
                     ).permitAll()
-                it.requestMatchers(
-                    "/image/draft/**"      // Require authentication for draft images
-                    ).authenticated()
                 it.anyRequest().authenticated()
             }.oauth2ResourceServer { it.jwt {  } }
         return http.build()
