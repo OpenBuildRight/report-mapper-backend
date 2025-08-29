@@ -28,18 +28,15 @@ const Template: Story = {
 export const Default: Story = {
   ...Template,
   args: {
-    selectedLocation: null,
-    onMapClick: (latlng: LatLng) => console.log('Map clicked at:', latlng),
+    selectedLocation: undefined,
+    onMapClick: (latlng: LatLng) => console.log('Map clicked at:', latlng), // Typed latlng
   },
 };
 
 export const WithSelectedLocation: Story = {
   ...Template,
   args: {
-    selectedLocation: {
-      lat: 51.505,
-      lng: -0.09,
-    },
+    selectedLocation: new LatLng(40.7128, -74.0060),
     onMapClick: (latlng: LatLng) => console.log('Map clicked at:', latlng),
   },
 };
@@ -55,10 +52,10 @@ export const WithCustomLocation: Story = {
   },
 };
 
-export const NoClickHandler: Story = {
+export const WithoutClickHandler: Story = {
   ...Template,
   args: {
-    selectedLocation: null,
-    onMapClick: null,
+    selectedLocation: undefined,
+    onMapClick: undefined,
   },
 };

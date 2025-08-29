@@ -12,7 +12,9 @@ const localStorageMock = {
   removeItem: jest.fn(),
   setItem: jest.fn(),
   clear: jest.fn(),
-};
+  length: 0,
+  key: jest.fn(),
+} as Storage;
 global.localStorage = localStorageMock;
 
 describe('useHomePage', () => {

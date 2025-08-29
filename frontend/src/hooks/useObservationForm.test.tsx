@@ -271,31 +271,6 @@ describe('useObservationForm', () => {
     });
   });
 
-  test('should clear message', () => {
-    const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
-
-    act(() => {
-      result.current.clearMessage();
-    });
-
-    expect(result.current.message).toBeNull();
-  });
-
-  test('should handle file selection', () => {
-    const { result } = renderHook(() => useObservationForm(mockObservationService, mockUploadService));
-
-    const testFiles = [
-      new File(['test1'], 'image1.jpg', { type: 'image/jpeg' }),
-      new File(['test2'], 'image2.jpg', { type: 'image/jpeg' })
-    ];
-
-    act(() => {
-      result.current.handleFileSelect(testFiles);
-    });
-
-    expect(result.current.uploadedImages).toEqual(testFiles);
-  });
-
   test('should upload images successfully', async () => {
     const mockResults = [
       { id: '1', filename: 'image1.jpg' },

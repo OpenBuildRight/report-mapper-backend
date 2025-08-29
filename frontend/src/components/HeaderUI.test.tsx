@@ -56,20 +56,23 @@ describe('HeaderUI', () => {
     const props = {
       ...defaultProps,
       isAuthenticated: true,
-      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser
+      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser // Updated user structure
     };
     renderWithRouter(<HeaderUI {...props} />);
-    expect(screen.getByRole('button', { class: 'user-button' })).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
-  test('should call onToggleUserDropdown when user button is clicked', () => {
+  test('should show user dropdown when clicked', () => {
     const props = {
       ...defaultProps,
       isAuthenticated: true,
-      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser
+      user: { name: 'John Doe', email: 'john@example.com' } as AuthUser,
+      showUserDropdown: true
     };
     renderWithRouter(<HeaderUI {...props} />);
-    const userButton = screen.getByRole('button', { class: 'user-button' });
+    
+    const userButtons = screen.getAllByRole('button');
+    const userButton = userButtons[0]; // Get the first button (user button)
     fireEvent.click(userButton);
     expect(defaultProps.onToggleUserDropdown).toHaveBeenCalled();
   });
