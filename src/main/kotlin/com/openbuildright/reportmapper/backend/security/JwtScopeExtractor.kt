@@ -19,12 +19,12 @@ class JwtScopeExtractor {
     }
     
     /**
-     * Check if user has moderator scope
+     * Check if user has admin scope
      * @param authentication The Spring Security authentication object
-     * @return true if user has moderator scope
+     * @return true if user has admin scope
      */
-    fun hasModeratorScope(authentication: Authentication): Boolean {
+    fun hasAdminScope(authentication: Authentication): Boolean {
         val scopes = extractScopes(authentication)
-        return scopes.any { it == "moderator" }
+        return scopes.any { it == "admin" }
     }
 }
