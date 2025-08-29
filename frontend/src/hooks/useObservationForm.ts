@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../auth/useAuth';
-import ObservationService, { ObservationData, Image } from '../services/observationService';
+import ObservationService, { ObservationData, Image, GeoLocation } from '../services/observationService';
 import ImageUploadService, { UploadedImage } from '../services/imageUploadService';
 
 export interface FormData {
@@ -41,6 +41,8 @@ export interface UseObservationFormReturn {
   clearMessage: () => void;
   setPropertyKey: (value: string) => void;
   setPropertyValue: (value: string) => void;
+  handleImageDescriptionChange: (imageId: string, description: string) => void;
+  handleLocationFromImage: (location: GeoLocation) => void;
 }
 
 export const useObservationForm = (
@@ -123,13 +125,27 @@ export const useObservationForm = (
       // Add newly uploaded images to available images list
       const newImages = results.map(result => ({
         id: result.id,
-        createdTime: new Date().toISOString(), // Use current time as createdTime
-        imageGeneratedTime: undefined, // Not available from upload result
-        location: undefined, // Not available from upload result
-        description: result.filename // Use filename as description
+        createdTime: result.createdTime,
+        imageGeneratedTime: result.imageGeneratedTime,
+        location: result.location,
+        description: result.description || `Image ${result.id}`
       }));
       
       setAvailableImages(prev => [...prev, ...newImages]);
+
+      // Auto-populate location from first image with location data if location is empty
+      const firstImageWithLocation = newImages.find(img => img.location);
+      if (firstImageWithLocation?.location && !formData.latitude && !formData.longitude) {
+        setFormData(prev => ({
+          ...prev,
+          latitude: firstImageWithLocation.location!.latitude.toString(),
+          longitude: firstImageWithLocation.location!.longitude.toString()
+        }));
+        setMessage(prev => prev ? {
+          ...prev,
+          text: `${prev.text} Location auto-populated from image data.`
+        } : null);
+      }
 
       return results;
     } catch (error: any) {
@@ -142,7 +158,25 @@ export const useObservationForm = (
     } finally {
       setUploading(false);
     }
-  }, [uploadedImages, uploadService, isAuthenticated]);
+  }, [uploadedImages, uploadService, isAuthenticated, formData.latitude, formData.longitude]);
+
+  const handleImageDescriptionChange = useCallback((imageId: string, description: string) => {
+    setAvailableImages(prev => 
+      prev.map(img => 
+        img.id === imageId 
+          ? { ...img, description } 
+          : img
+      )
+    );
+  }, []);
+
+  const handleLocationFromImage = useCallback((location: GeoLocation) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString()
+    }));
+  }, []);
 
   const addProperty = useCallback(() => {
     if (propertyKey && propertyValue) {
@@ -288,6 +322,8 @@ export const useObservationForm = (
     submitObservation,
     clearMessage,
     setPropertyKey,
-    setPropertyValue
+    setPropertyValue,
+    handleImageDescriptionChange,
+    handleLocationFromImage
   };
 };

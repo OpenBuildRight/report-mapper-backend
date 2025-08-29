@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios';
+import { GeoLocation } from './observationService';
 
 export interface ImageMetadata {
   latitude?: number;
@@ -9,11 +10,10 @@ export interface ImageMetadata {
 
 export interface UploadedImage {
   id: string;
-  filename: string;
+  createdTime: string;
+  imageGeneratedTime?: string;
+  location?: GeoLocation;
   description?: string;
-  url: string;
-  uploadedAt: string;
-  metadata?: ImageMetadata;
 }
 
 class ImageUploadService {
@@ -47,7 +47,15 @@ class ImageUploadService {
       },
     });
 
-    return response.data;
+    // Transform the response to match our UploadedImage interface
+    const imageDto = response.data;
+    return {
+      id: imageDto.id,
+      createdTime: imageDto.createdTime,
+      imageGeneratedTime: imageDto.imageGeneratedTime,
+      location: imageDto.location,
+      description: imageDto.description
+    };
   }
 
   async uploadMultipleImages(files: File[], metadata: ImageMetadata = {}): Promise<UploadedImage[]> {

@@ -34,7 +34,9 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
     submitObservation,
     clearMessage,
     setPropertyKey,
-    setPropertyValue
+    setPropertyValue,
+    handleImageDescriptionChange,
+    handleLocationFromImage
   } = useObservationForm(observationService, uploadService);
 
   const handleSubmit = async () => {
@@ -68,6 +70,8 @@ const ObservationFormContainer: React.FC<ObservationFormContainerProps> = ({ onS
       onClearMessage={clearMessage}
       onPropertyKeyChange={setPropertyKey}
       onPropertyValueChange={setPropertyValue}
+      onImageDescriptionChange={handleImageDescriptionChange}
+      onLocationFromImage={handleLocationFromImage}
     />
   );
 };
