@@ -57,14 +57,4 @@ interface ObjectPermissionDocumentRepository : MongoRepository<ObjectPermissionD
         role: String, 
         permission: String
     ): Boolean
-    
-    /**
-     * Check if a specific permission exists for a role on all objects (wildcard)
-     */
-    @Query("{'objectType': ?0, 'objectId': '*', 'granteeType': 'ROLE', 'grantee': ?1, 'permissions': ?2}")
-    fun existsByObjectTypeAndWildcardRoleAndPermission(
-        objectType: ObjectType, 
-        role: String, 
-        permission: String
-    ): Boolean
 }

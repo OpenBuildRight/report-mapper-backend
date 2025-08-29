@@ -13,10 +13,6 @@ class PermissionService(
     private val jwtScopeExtractor: JwtScopeExtractor
 ) {
     
-    companion object {
-        const val ALL_OBJECTS_WILDCARD = "*"
-    }
-    
     /**
      * Check if a user has a specific permission on an object
      */
@@ -47,27 +43,11 @@ class PermissionService(
             }
         }
         
-        // Check role-based permissions in order of precedence
-        val rolesToCheck = if (username != null) {
-            listOf(SystemRole.AUTHENTICATED.name, SystemRole.PUBLIC.name)
-        } else {
-            listOf(SystemRole.PUBLIC.name)
-        }
-        
-        for (role in rolesToCheck) {
-            // Check specific object permissions
-            if (permissionRepository.existsByObjectTypeAndObjectIdAndRoleAndPermission(
-                objectType, objectId, role, permission.name
-            )) {
-                return true
-            }
-            
-            // Check wildcard permissions
-            if (permissionRepository.existsByObjectTypeAndWildcardRoleAndPermission(
-                objectType, role, permission.name
-            )) {
-                return true
-            }
+        // Check role-based permissions (PUBLIC role for published objects)
+        if (permissionRepository.existsByObjectTypeAndObjectIdAndRoleAndPermission(
+            objectType, objectId, SystemRole.PUBLIC.name, permission.name
+        )) {
+            return true
         }
         
         return false
@@ -106,29 +86,7 @@ class PermissionService(
     }
     
     /**
-     * Grant permissions to all objects of a type (wildcard permission)
-     * Note: Admin permissions are handled synthetically, so this is mainly for other roles
-     */
-    fun grantPermissionToAll(
-        objectType: ObjectType,
-        granteeType: PermissionGranteeType,
-        grantee: String,
-        permissions: Set<Permission>,
-        grantedBy: String
-    ): ObjectPermissionDocument {
-        return grantPermission(
-            objectType,
-            ALL_OBJECTS_WILDCARD,
-            granteeType,
-            grantee,
-            permissions,
-            grantedBy
-        )
-    }
-    
-    /**
      * Grant ownership permissions to a user (READ, UPDATE, DISABLE)
-     * Note: PUBLISH is handled separately as a system-wide permission
      */
     fun grantOwnership(
         objectType: ObjectType,
@@ -161,22 +119,6 @@ class PermissionService(
     }
     
     /**
-     * Grant admin permissions to a specific object
-     * Note: This is mainly for audit purposes since admin permissions are synthetic
-     */
-    fun grantAdminPermissions(objectType: ObjectType, objectId: String, grantedBy: String): ObjectPermissionDocument {
-        val adminPermissions = setOf(Permission.READ, Permission.DISABLE)
-        return grantPermission(
-            objectType, 
-            objectId, 
-            PermissionGranteeType.ROLE, 
-            SystemRole.ADMIN.name, 
-            adminPermissions, 
-            grantedBy
-        )
-    }
-    
-    /**
      * Revoke permissions for a grantee on an object
      */
     fun revokePermission(
@@ -192,17 +134,6 @@ class PermissionService(
     }
     
     /**
-     * Revoke wildcard permissions for a grantee on all objects of a type
-     */
-    fun revokePermissionFromAll(
-        objectType: ObjectType,
-        granteeType: PermissionGranteeType,
-        grantee: String
-    ) {
-        revokePermission(objectType, ALL_OBJECTS_WILDCARD, granteeType, grantee)
-    }
-    
-    /**
      * Delete all permissions for an object
      */
     fun deleteObjectPermissions(objectType: ObjectType, objectId: String) {
@@ -214,12 +145,5 @@ class PermissionService(
      */
     fun getObjectPermissions(objectType: ObjectType, objectId: String): List<ObjectPermissionDocument> {
         return permissionRepository.findByObjectTypeAndObjectId(objectType, objectId)
-    }
-    
-    /**
-     * Get all wildcard permissions for an object type
-     */
-    fun getWildcardPermissions(objectType: ObjectType): List<ObjectPermissionDocument> {
-        return permissionRepository.findByObjectTypeAndObjectId(objectType, ALL_OBJECTS_WILDCARD)
     }
 }
