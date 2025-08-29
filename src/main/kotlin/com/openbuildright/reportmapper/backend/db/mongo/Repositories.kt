@@ -6,6 +6,7 @@ import com.openbuildright.reportmapper.backend.db.mongo.document.ObjectPermissio
 import com.openbuildright.reportmapper.backend.security.ObjectType
 import com.openbuildright.reportmapper.backend.security.PermissionGranteeType
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -34,4 +35,36 @@ interface ObjectPermissionDocumentRepository : MongoRepository<ObjectPermissionD
         grantee: String
     ): List<ObjectPermissionDocument>
     fun deleteByObjectTypeAndObjectId(objectType: ObjectType, objectId: String)
+    
+    /**
+     * Check if a specific permission exists for a user on an object
+     */
+    @Query("{'objectType': ?0, 'objectId': ?1, 'granteeType': 'USER', 'grantee': ?2, 'permissions': ?3}")
+    fun existsByObjectTypeAndObjectIdAndUserAndPermission(
+        objectType: ObjectType, 
+        objectId: String, 
+        username: String, 
+        permission: String
+    ): Boolean
+    
+    /**
+     * Check if a specific permission exists for a role on an object
+     */
+    @Query("{'objectType': ?0, 'objectId': ?1, 'granteeType': 'ROLE', 'grantee': ?2, 'permissions': ?3}")
+    fun existsByObjectTypeAndObjectIdAndRoleAndPermission(
+        objectType: ObjectType, 
+        objectId: String, 
+        role: String, 
+        permission: String
+    ): Boolean
+    
+    /**
+     * Check if a specific permission exists for a role on all objects (wildcard)
+     */
+    @Query("{'objectType': ?0, 'objectId': '*', 'granteeType': 'ROLE', 'grantee': ?1, 'permissions': ?2}")
+    fun existsByObjectTypeAndWildcardRoleAndPermission(
+        objectType: ObjectType, 
+        role: String, 
+        permission: String
+    ): Boolean
 }
