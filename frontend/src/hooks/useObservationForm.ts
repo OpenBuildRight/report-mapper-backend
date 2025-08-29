@@ -222,8 +222,10 @@ export const useObservationForm = (
         title: formData.title,
         description: formData.description,
         observationTime: observationTime,
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
+        location: {
+          latitude: parseFloat(formData.latitude),
+          longitude: parseFloat(formData.longitude)
+        },
         imageIds: formData.imageIds,
         properties: formData.properties
       };

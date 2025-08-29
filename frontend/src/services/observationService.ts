@@ -4,8 +4,10 @@ export interface ObservationData {
   title: string;
   description: string;
   observationTime: string;
-  latitude: number;
-  longitude: number;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
   imageIds: string[];
   properties: Record<string, any>;
 }
@@ -15,8 +17,10 @@ export interface Observation {
   title: string;
   description: string;
   observationTime: string;
-  latitude: number;
-  longitude: number;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
   imageIds: string[];
   properties: Record<string, any>;
   createdAt: string;
