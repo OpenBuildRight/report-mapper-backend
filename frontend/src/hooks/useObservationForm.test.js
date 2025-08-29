@@ -224,10 +224,8 @@ describe('useObservationForm', () => {
       title: 'Test Observation',
       description: 'Test Description',
       observationTime: expect.any(String),
-      location: {
-        latitude: 40.7128,
-        longitude: -74.006
-      },
+      latitude: 40.7128,
+      longitude: -74.006,
       imageIds: ['1'],
       properties: {}
     });
@@ -315,15 +313,7 @@ describe('useObservationForm', () => {
       await result.current.handleUploadImages();
     });
 
-    expect(mockUploadService.uploadMultipleImages).toHaveBeenCalledWith(testFiles, {
-      title: '',
-      description: '',
-      observationTime: '',
-      latitude: '40.7128',
-      longitude: '-74.0060',
-      imageIds: [],
-      properties: {}
-    });
+    expect(mockUploadService.uploadMultipleImages).toHaveBeenCalledWith(testFiles, {});
 
     expect(result.current.message).toEqual({
       type: 'success',
