@@ -51,30 +51,34 @@ class ObservationController(
     @GetMapping("/{id}")
     fun getObservation(@PathVariable id: String, authentication: Authentication?): ResponseEntity<SecureResponse<ObservationDto>> {
         return try {
-            val accessInfo = observationAccessService.getAccessInfo(id, authentication)
+            val accessResult = observationAccessService.getAccessInfoWithObservation(id, authentication)
             
-            when (accessInfo.accessLevel) {
+            when (accessResult.accessInfo.accessLevel) {
                 com.openbuildright.reportmapper.backend.security.AccessLevel.DENIED -> {
                     ResponseEntity.ok(SecureResponse.denied<ObservationDto>("Access denied"))
                 }
                 else -> {
-                    val observation = observationService.getObservation(id)
-                    val observationDto = ObservationDto.fromObservationModel(observation)
-                    
-                    val response = when (accessInfo.accessLevel) {
-                        com.openbuildright.reportmapper.backend.security.AccessLevel.PUBLIC -> {
-                            SecureResponse.public(observationDto)
+                    val observation = accessResult.observation
+                    if (observation == null) {
+                        ResponseEntity.ok(SecureResponse.denied<ObservationDto>("Observation not found"))
+                    } else {
+                        val observationDto = ObservationDto.fromObservationModel(observation)
+                        
+                        val response = when (accessResult.accessInfo.accessLevel) {
+                            com.openbuildright.reportmapper.backend.security.AccessLevel.PUBLIC -> {
+                                SecureResponse.public(observationDto)
+                            }
+                            com.openbuildright.reportmapper.backend.security.AccessLevel.OWNER -> {
+                                SecureResponse.owner(observationDto, accessResult.accessInfo.canEdit, accessResult.accessInfo.canDelete)
+                            }
+                            com.openbuildright.reportmapper.backend.security.AccessLevel.MODERATOR -> {
+                                SecureResponse.moderator(observationDto)
+                            }
+                            else -> SecureResponse.denied<ObservationDto>()
                         }
-                        com.openbuildright.reportmapper.backend.security.AccessLevel.OWNER -> {
-                            SecureResponse.owner(observationDto, accessInfo.canEdit, accessInfo.canDelete)
-                        }
-                        com.openbuildright.reportmapper.backend.security.AccessLevel.MODERATOR -> {
-                            SecureResponse.moderator(observationDto)
-                        }
-                        else -> SecureResponse.denied<ObservationDto>()
+                        
+                        ResponseEntity.ok(response)
                     }
-                    
-                    ResponseEntity.ok(response)
                 }
             }
         } catch (e: Exception) {

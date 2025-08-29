@@ -17,6 +17,11 @@ data class AccessInfo(
     val canDelete: Boolean
 )
 
+data class AccessResult(
+    val accessInfo: AccessInfo,
+    val observation: ObservationModel?
+)
+
 @Service
 class ObservationAccessService(
     private val observationService: ObservationService,
@@ -36,6 +41,13 @@ class ObservationAccessService(
     }
     
     /**
+     * Check if user is the owner of an observation (with pre-fetched observation)
+     */
+    fun isOwner(observation: ObservationModel, username: String): Boolean {
+        return observation.reporterId == username
+    }
+    
+    /**
      * Check if an observation is published (enabled)
      */
     fun isPublished(observationId: String): Boolean {
@@ -47,12 +59,28 @@ class ObservationAccessService(
     }
     
     /**
+     * Check if an observation is published (with pre-fetched observation)
+     */
+    fun isPublished(observation: ObservationModel): Boolean {
+        return observation.enabled
+    }
+    
+    /**
      * Check if user can edit an observation
      */
     fun canEdit(observationId: String, authentication: Authentication): Boolean {
         val username = authentication.name
         val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
         return isOwner(observationId, username) || hasModeratorScope
+    }
+    
+    /**
+     * Check if user can edit an observation (with pre-fetched observation)
+     */
+    fun canEdit(observation: ObservationModel, authentication: Authentication): Boolean {
+        val username = authentication.name
+        val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
+        return isOwner(observation, username) || hasModeratorScope
     }
     
     /**
@@ -72,6 +100,15 @@ class ObservationAccessService(
     }
     
     /**
+     * Check if user can delete an observation (with pre-fetched observation)
+     */
+    fun canDelete(observation: ObservationModel, authentication: Authentication): Boolean {
+        val username = authentication.name
+        val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
+        return isOwner(observation, username) || hasModeratorScope
+    }
+    
+    /**
      * Get comprehensive access information for an observation
      */
     fun getAccessInfo(observationId: String, authentication: Authentication?): AccessInfo {
@@ -87,6 +124,53 @@ class ObservationAccessService(
         val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
         val isOwner = isOwner(observationId, username)
         val isPublished = isPublished(observationId)
+        
+        val accessLevel = when {
+            hasModeratorScope -> AccessLevel.MODERATOR
+            isOwner -> AccessLevel.OWNER
+            isPublished -> AccessLevel.PUBLIC
+            else -> AccessLevel.DENIED
+        }
+        
+        return AccessInfo(
+            accessLevel = accessLevel,
+            canEdit = isOwner || hasModeratorScope,
+            canPublish = hasModeratorScope,
+            canDelete = isOwner || hasModeratorScope
+        )
+    }
+    
+    /**
+     * Get comprehensive access information and observation in a single call
+     */
+    fun getAccessInfoWithObservation(observationId: String, authentication: Authentication?): AccessResult {
+        return try {
+            val observation = observationService.getObservation(observationId)
+            val accessInfo = getAccessInfoWithObservation(observation, authentication)
+            AccessResult(accessInfo, observation)
+        } catch (e: Exception) {
+            // If observation doesn't exist, return denied access
+            val deniedInfo = AccessInfo(AccessLevel.DENIED, false, false, false)
+            AccessResult(deniedInfo, null)
+        }
+    }
+    
+    /**
+     * Get comprehensive access information for an observation (with pre-fetched observation)
+     */
+    fun getAccessInfoWithObservation(observation: ObservationModel, authentication: Authentication?): AccessInfo {
+        if (authentication == null) {
+            return if (isPublished(observation)) {
+                AccessInfo(AccessLevel.PUBLIC, false, false, false)
+            } else {
+                AccessInfo(AccessLevel.DENIED, false, false, false)
+            }
+        }
+        
+        val username = authentication.name
+        val hasModeratorScope = jwtScopeExtractor.hasModeratorScope(authentication)
+        val isOwner = isOwner(observation, username)
+        val isPublished = isPublished(observation)
         
         val accessLevel = when {
             hasModeratorScope -> AccessLevel.MODERATOR
