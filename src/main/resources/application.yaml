@@ -6,6 +6,15 @@ spring:
         multipart:
             max-file-size: 50MB
             max-request-size: 50MB
+
+# CORS Configuration
+cors:
+    allowed-origins: http://localhost:3000,http://127.0.0.1:3000
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
 server:
     port: 8080
 ---
