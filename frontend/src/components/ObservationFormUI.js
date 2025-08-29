@@ -48,9 +48,10 @@ const ObservationFormUI = ({
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Title *</label>
+          <label htmlFor="title">Title *</label>
           <input
             type="text"
+            id="title"
             name="title"
             value={formData.title}
             onChange={onInputChange}
@@ -61,8 +62,9 @@ const ObservationFormUI = ({
         </div>
 
         <div className="form-group">
-          <label>Description *</label>
+          <label htmlFor="description">Description *</label>
           <textarea
+            id="description"
             name="description"
             value={formData.description}
             onChange={onInputChange}
@@ -73,9 +75,10 @@ const ObservationFormUI = ({
         </div>
 
         <div className="form-group">
-          <label>Observation Time</label>
+          <label htmlFor="observationTime">Observation Time</label>
           <input
             type="datetime-local"
+            id="observationTime"
             name="observationTime"
             value={formData.observationTime}
             onChange={onInputChange}
@@ -88,10 +91,11 @@ const ObservationFormUI = ({
           <label>Location *</label>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
-              <label>Latitude</label>
+              <label htmlFor="latitude">Latitude</label>
               <input
                 type="number"
                 step="any"
+                id="latitude"
                 name="latitude"
                 value={formData.latitude}
                 onChange={onInputChange}
@@ -101,10 +105,11 @@ const ObservationFormUI = ({
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label>Longitude</label>
+              <label htmlFor="longitude">Longitude</label>
               <input
                 type="number"
                 step="any"
+                id="longitude"
                 name="longitude"
                 value={formData.longitude}
                 onChange={onInputChange}

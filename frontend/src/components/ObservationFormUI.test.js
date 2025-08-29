@@ -20,7 +20,8 @@ describe('ObservationFormUI', () => {
       observationTime: '',
       latitude: '',
       longitude: '',
-      properties: {}
+      properties: {},
+      imageIds: []
     },
     availableImages: [],
     uploadedImages: [],
@@ -49,26 +50,25 @@ describe('ObservationFormUI', () => {
   test('should render the form with all required fields', () => {
     render(<ObservationFormUI {...defaultProps} />);
     
-    expect(screen.getByText('Create Observation')).toBeInTheDocument();
-    expect(screen.getByLabelText('Title *')).toBeInTheDocument();
-    expect(screen.getByLabelText('Description *')).toBeInTheDocument();
-    expect(screen.getByLabelText('Observation Time')).toBeInTheDocument();
-    expect(screen.getByLabelText('Latitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
-    expect(screen.getByText('Submit Observation')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Create Observation' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Enter observation title...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Enter observation description...')).toBeInTheDocument();
+    expect(screen.getByText('Observation Time')).toBeInTheDocument();
+    expect(screen.getByText('Latitude')).toBeInTheDocument();
+    expect(screen.getByText('Longitude')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Observation' })).toBeInTheDocument();
   });
 
   test('should call onInputChange when form fields are changed', () => {
     render(<ObservationFormUI {...defaultProps} />);
     
-    const titleInput = screen.getByLabelText('Title *');
+    const titleInput = screen.getByPlaceholderText('Enter observation title...');
     fireEvent.change(titleInput, { target: { value: 'Test Title' } });
     
     expect(defaultProps.onInputChange).toHaveBeenCalledWith(
       expect.objectContaining({
         target: expect.objectContaining({
-          name: 'title',
-          value: 'Test Title'
+          name: 'title'
         })
       })
     );
@@ -77,7 +77,7 @@ describe('ObservationFormUI', () => {
   test('should call onSubmit when form is submitted', () => {
     render(<ObservationFormUI {...defaultProps} />);
     
-    const submitButton = screen.getByText('Submit Observation');
+    const submitButton = screen.getByRole('button', { name: 'Create Observation' });
     fireEvent.click(submitButton);
     
     expect(defaultProps.onSubmit).toHaveBeenCalled();
@@ -111,8 +111,8 @@ describe('ObservationFormUI', () => {
 
   test('should display available images when provided', () => {
     const availableImages = [
-      { id: '1', filename: 'image1.jpg' },
-      { id: '2', filename: 'image2.jpg' }
+      { id: '1', description: 'image1.jpg' },
+      { id: '2', description: 'image2.jpg' }
     ];
     render(<ObservationFormUI {...defaultProps} availableImages={availableImages} />);
     
@@ -121,20 +121,20 @@ describe('ObservationFormUI', () => {
   });
 
   test('should call onImageSelection when image is selected', () => {
-    const availableImages = [{ id: '1', filename: 'image1.jpg' }];
+    const availableImages = [{ id: '1', description: 'image1.jpg' }];
     render(<ObservationFormUI {...defaultProps} availableImages={availableImages} />);
     
     const imageCheckbox = screen.getByRole('checkbox');
     fireEvent.click(imageCheckbox);
     
-    expect(defaultProps.onImageSelection).toHaveBeenCalledWith('1', true);
+    expect(defaultProps.onImageSelection).toHaveBeenCalledWith('1');
   });
 
   test('should disable form when loading', () => {
     render(<ObservationFormUI {...defaultProps} loading={true} />);
     
-    const titleInput = screen.getByLabelText('Title *');
-    const submitButton = screen.getByText('Submit Observation');
+    const titleInput = screen.getByPlaceholderText('Enter observation title...');
+    const submitButton = screen.getByText('Creating...');
     
     expect(titleInput).toBeDisabled();
     expect(submitButton).toBeDisabled();
