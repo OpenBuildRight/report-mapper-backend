@@ -72,7 +72,7 @@ describe('useHeader', () => {
 
   test('should toggle user dropdown', () => {
     mockUseAuth.mockReturnValue({
-      user: { profile: { name: 'John Doe' } },
+      user: { name: 'John Doe' },
       signoutRedirect: jest.fn(),
       isAuthenticated: true
     });
@@ -94,29 +94,10 @@ describe('useHeader', () => {
     expect(result.current.showUserDropdown).toBe(false);
   });
 
-  test('should get user initials from given_name and family_name', () => {
-    mockUseAuth.mockReturnValue({
-      user: { 
-        profile: { 
-          given_name: 'John',
-          family_name: 'Doe'
-        } 
-      },
-      signoutRedirect: jest.fn(),
-      isAuthenticated: true
-    });
-
-    const { result } = renderHook(() => useHeader());
-
-    expect(result.current.getUserInitials()).toBe('JD');
-  });
-
   test('should get user initials from name', () => {
     mockUseAuth.mockReturnValue({
       user: { 
-        profile: { 
-          name: 'Jane Smith'
-        } 
+        name: 'Jane Smith'
       },
       signoutRedirect: jest.fn(),
       isAuthenticated: true
@@ -130,9 +111,7 @@ describe('useHeader', () => {
   test('should get user initials from email', () => {
     mockUseAuth.mockReturnValue({
       user: { 
-        profile: { 
-          email: 'user@example.com'
-        } 
+        email: 'user@example.com'
       },
       signoutRedirect: jest.fn(),
       isAuthenticated: true
@@ -143,7 +122,7 @@ describe('useHeader', () => {
     expect(result.current.getUserInitials()).toBe('U');
   });
 
-  test('should return U when no user profile', () => {
+  test('should return U when no user', () => {
     mockUseAuth.mockReturnValue({
       user: null,
       signoutRedirect: jest.fn(),
@@ -155,7 +134,7 @@ describe('useHeader', () => {
     expect(result.current.getUserInitials()).toBe('U');
   });
 
-  test('should return U when user has no profile', () => {
+  test('should return U when user has no name or email', () => {
     mockUseAuth.mockReturnValue({
       user: {},
       signoutRedirect: jest.fn(),

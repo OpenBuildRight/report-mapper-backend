@@ -1,7 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { AuthUser } from '../auth/useAuth';
 
-const HeaderUI = ({
+interface HeaderUIProps {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  showUserDropdown: boolean;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  onLogout: () => void;
+  onLogin: () => void;
+  onToggleUserDropdown: () => void;
+  getUserInitials: () => string;
+}
+
+const HeaderUI: React.FC<HeaderUIProps> = ({
   user,
   isAuthenticated,
   showUserDropdown,
@@ -12,7 +24,7 @@ const HeaderUI = ({
   getUserInitials
 }) => {
   return (
-    <header className="header">
+    <header className="header" data-testid="header">
       <div className="header-content">
         <div className="header-left">
           <Link to="/" className="header-title">
@@ -38,10 +50,10 @@ const HeaderUI = ({
                 <div className="dropdown-menu">
                   <div className="user-info">
                     <div className="user-name">
-                      {user?.profile?.name || user?.profile?.email || 'User'}
+                      {user?.name || user?.email || 'User'}
                     </div>
                     <div className="user-email">
-                      {user?.profile?.email}
+                      {user?.email}
                     </div>
                   </div>
                   <div className="dropdown-divider"></div>

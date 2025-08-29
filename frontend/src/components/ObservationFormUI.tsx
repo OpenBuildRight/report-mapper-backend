@@ -1,6 +1,33 @@
 import React from 'react';
+import { FormData, Message } from '../hooks/useObservationForm';
+import { Image } from '../services/observationService';
 
-const ObservationFormUI = ({
+interface ObservationFormUIProps {
+  // State
+  formData: FormData;
+  availableImages: Image[];
+  uploadedImages: File[];
+  uploading: boolean;
+  loading: boolean;
+  message: Message | null;
+  propertyKey: string;
+  propertyValue: string;
+  
+  // Actions
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onImageSelection: (imageId: string) => void;
+  onFileSelect: (files: File[]) => void;
+  onUploadImages: () => Promise<any>;
+  onAddProperty: () => void;
+  onRemoveProperty: (key: string) => void;
+  onGetCurrentLocation: () => void;
+  onSubmit: () => void;
+  onClearMessage: () => void;
+  onPropertyKeyChange: (value: string) => void;
+  onPropertyValueChange: (value: string) => void;
+}
+
+const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
   // State
   formData,
   availableImages,
@@ -24,9 +51,24 @@ const ObservationFormUI = ({
   onPropertyKeyChange,
   onPropertyValueChange
 }) => {
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    onFileSelect(files);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    onFileSelect(files);
   };
 
   return (
@@ -131,16 +173,12 @@ const ObservationFormUI = ({
 
         <div className="form-group">
           <label>Upload New Images</label>
-          <div className="dropzone" onDrop={(e) => {
-            e.preventDefault();
-            const files = Array.from(e.dataTransfer.files);
-            onFileSelect(files);
-          }} onDragOver={(e) => e.preventDefault()}>
+          <div className="dropzone" onDrop={handleDrop} onDragOver={handleDragOver}>
             <input
               type="file"
               multiple
               accept="image/*,.jpeg,.jpg,.png"
-              onChange={(e) => onFileSelect(Array.from(e.target.files || []))}
+              onChange={handleFileChange}
               style={{ display: 'none' }}
               id="image-upload"
             />
@@ -186,7 +224,7 @@ const ObservationFormUI = ({
                   onChange={() => onImageSelection(image.id)}
                   disabled={loading}
                 />
-                <label htmlFor={image.id}>{image.description}</label>
+                <label htmlFor={image.id}>{image.description || image.filename}</label>
               </div>
             ))}
           </div>

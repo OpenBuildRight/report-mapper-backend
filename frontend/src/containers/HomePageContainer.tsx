@@ -2,7 +2,7 @@ import React from 'react';
 import { useHomePage } from '../hooks/useHomePage';
 import HomePageUI from '../components/HomePageUI';
 
-const HomePageContainer = () => {
+const HomePageContainer: React.FC = () => {
   const { isAuthenticated } = useHomePage();
 
   return (

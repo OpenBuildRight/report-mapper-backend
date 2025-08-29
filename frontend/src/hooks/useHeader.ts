@@ -5,26 +5,26 @@ import { useNavigate } from 'react-router-dom';
 export const useHeader = () => {
   const { user, signoutRedirect, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const dropdownRef = useRef(null);
+  const [showUserDropdown, setShowUserDropdown] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     signoutRedirect();
     setShowUserDropdown(false);
   };
 
-  const handleLogin = () => {
+  const handleLogin = (): void => {
     navigate('/login');
   };
 
-  const toggleUserDropdown = () => {
+  const toggleUserDropdown = (): void => {
     setShowUserDropdown(!showUserDropdown);
   };
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowUserDropdown(false);
       }
     };
@@ -36,23 +36,23 @@ export const useHeader = () => {
   }, []);
 
   // Get user initials
-  const getUserInitials = () => {
-    if (!user || !user.profile) return 'U';
-    const { given_name, family_name, name, email } = user.profile;
+  const getUserInitials = (): string => {
+    if (!user) return 'U';
     
-    if (given_name && family_name) {
-      return `${given_name[0]}${family_name[0]}`.toUpperCase();
-    }
-    if (name) {
-      const names = name.split(' ');
+    // Try to get initials from name property
+    if (user.name) {
+      const names = user.name.split(' ');
       if (names.length >= 2) {
         return `${names[0][0]}${names[1][0]}`.toUpperCase();
       }
-      return name[0].toUpperCase();
+      return user.name[0].toUpperCase();
     }
-    if (email) {
-      return email[0].toUpperCase();
+    
+    // Fallback to email
+    if (user.email) {
+      return user.email[0].toUpperCase();
     }
+    
     return 'U';
   };
 

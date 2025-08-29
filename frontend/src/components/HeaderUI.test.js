@@ -55,7 +55,7 @@ describe('HeaderUI', () => {
     const props = {
       ...defaultProps,
       isAuthenticated: true,
-      user: { profile: { name: 'John Doe', email: 'john@example.com' } }
+      user: { name: 'John Doe', email: 'john@example.com' }
     };
     renderWithRouter(<HeaderUI {...props} />);
     expect(screen.getByRole('button', { class: 'user-button' })).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe('HeaderUI', () => {
     const props = {
       ...defaultProps,
       isAuthenticated: true,
-      user: { profile: { name: 'John Doe', email: 'john@example.com' } }
+      user: { name: 'John Doe', email: 'john@example.com' }
     };
     renderWithRouter(<HeaderUI {...props} />);
     const userButton = screen.getByRole('button', { class: 'user-button' });
@@ -78,7 +78,7 @@ describe('HeaderUI', () => {
       ...defaultProps,
       isAuthenticated: true,
       showUserDropdown: true,
-      user: { profile: { name: 'John Doe', email: 'john@example.com' } }
+      user: { name: 'John Doe', email: 'john@example.com' }
     };
     renderWithRouter(<HeaderUI {...props} />);
     expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -91,7 +91,7 @@ describe('HeaderUI', () => {
       ...defaultProps,
       isAuthenticated: true,
       showUserDropdown: true,
-      user: { profile: { name: 'John Doe', email: 'john@example.com' } }
+      user: { name: 'John Doe', email: 'john@example.com' }
     };
     renderWithRouter(<HeaderUI {...props} />);
     const logoutButton = screen.getByText('Logout');
@@ -104,7 +104,7 @@ describe('HeaderUI', () => {
       ...defaultProps,
       isAuthenticated: true,
       showUserDropdown: true,
-      user: { profile: { name: 'Jane Smith', email: 'jane@example.com' } }
+      user: { name: 'Jane Smith', email: 'jane@example.com' }
     };
     renderWithRouter(<HeaderUI {...props} />);
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();

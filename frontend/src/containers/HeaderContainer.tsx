@@ -2,7 +2,7 @@ import React from 'react';
 import { useHeader } from '../hooks/useHeader';
 import HeaderUI from '../components/HeaderUI';
 
-const HeaderContainer = () => {
+const HeaderContainer: React.FC = () => {
   const {
     user,
     isAuthenticated,
