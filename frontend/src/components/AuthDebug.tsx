@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../auth/useAuth';
 
 const AuthDebug: React.FC = () => {
-  const { isAuthenticated, isLoading, user, getAccessToken } = useAuth();
+  const { isAuthenticated, isLoading, user, getAccessToken, error, clearError } = useAuth();
 
   const handleTestAuth = () => {
     const token = getAccessToken();
@@ -11,6 +11,7 @@ const AuthDebug: React.FC = () => {
       isLoading,
       user,
       token,
+      error,
       localStorage: {
         access_token: localStorage.getItem('access_token'),
         pendingAction: localStorage.getItem('pendingAction'),
@@ -31,6 +32,18 @@ const AuthDebug: React.FC = () => {
     window.location.reload();
   };
 
+  const handleSimulateError = () => {
+    // Simulate an invalid token error
+    localStorage.setItem('access_token', 'invalid-token');
+    console.log('🚨 Simulated invalid token error');
+    window.location.reload();
+  };
+
+  const handleClearError = () => {
+    clearError();
+    console.log('🧹 Cleared error state');
+  };
+
   if (!process.env.NODE_ENV || process.env.NODE_ENV === 'production') {
     return null; // Don't show in production
   }
@@ -46,7 +59,7 @@ const AuthDebug: React.FC = () => {
       borderRadius: '5px',
       fontSize: '12px',
       zIndex: 9999,
-      maxWidth: '300px'
+      maxWidth: '350px'
     }}>
       <h4 style={{ margin: '0 0 10px 0' }}>🔍 Auth Debug</h4>
       <div>
@@ -58,6 +71,11 @@ const AuthDebug: React.FC = () => {
       <div>
         <strong>Token:</strong> {getAccessToken() ? '✅ Present' : '❌ Missing'}
       </div>
+      {error && (
+        <div style={{ marginTop: '5px', color: '#ef4444' }}>
+          <strong>Error:</strong> {error.title}
+        </div>
+      )}
       <div style={{ marginTop: '10px' }}>
         <button onClick={handleTestAuth} style={{ marginRight: '5px', fontSize: '10px' }}>
           Test Auth
@@ -65,9 +83,17 @@ const AuthDebug: React.FC = () => {
         <button onClick={handleSetTestToken} style={{ marginRight: '5px', fontSize: '10px' }}>
           Set Test Token
         </button>
-        <button onClick={handleClearStorage} style={{ fontSize: '10px' }}>
+        <button onClick={handleSimulateError} style={{ marginRight: '5px', fontSize: '10px' }}>
+          Simulate Error
+        </button>
+        <button onClick={handleClearStorage} style={{ marginRight: '5px', fontSize: '10px' }}>
           Clear Storage
         </button>
+        {error && (
+          <button onClick={handleClearError} style={{ fontSize: '10px' }}>
+            Clear Error
+          </button>
+        )}
       </div>
     </div>
   );
