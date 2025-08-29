@@ -1,38 +1,42 @@
 import { AxiosInstance } from 'axios';
 
+// GeoLocation interface matching backend GeoLocationDto
+export interface GeoLocation {
+  latitude: number;
+  longitude: number;
+}
+
+// ObservationData interface matching backend ObservationCreateDto
 export interface ObservationData {
   title: string;
   description: string;
-  observationTime: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  imageIds: string[];
-  properties: Record<string, any>;
+  observationTime: string; // Will be converted to ISO string before sending
+  location: GeoLocation;
+  imageIds: string[]; // Will be converted to Set on backend
+  properties: Record<string, string>; // Changed from any to string to match backend
 }
 
+// Observation interface matching backend ObservationDto
 export interface Observation {
   id: string;
   title: string;
   description: string;
-  observationTime: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  imageIds: string[];
-  properties: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
+  observationTime: string; // ISO string from backend
+  createdTime: string; // ISO string from backend
+  updatedTime: string; // ISO string from backend
+  location: GeoLocation;
+  imageIds: string[]; // Array from backend
+  properties: Record<string, string>; // Changed from any to string to match backend
+  enabled: boolean; // Added to match backend
 }
 
+// Image interface matching backend ImageDto
 export interface Image {
   id: string;
-  filename: string;
-  description?: string;
-  url: string;
-  uploadedAt: string;
+  createdTime: string; // ISO string from backend
+  imageGeneratedTime?: string; // ISO string from backend, optional
+  location?: GeoLocation; // Optional location from backend
+  description?: string; // Optional description from backend
 }
 
 class ObservationService {

@@ -10,7 +10,7 @@ export interface FormData {
   latitude: string;
   longitude: string;
   imageIds: string[];
-  properties: Record<string, any>;
+  properties: Record<string, string>; // Changed from any to string to match backend
 }
 
 export interface Message {
@@ -123,9 +123,10 @@ export const useObservationForm = (
       // Add newly uploaded images to available images list
       const newImages = results.map(result => ({
         id: result.id,
-        filename: result.filename,
-        url: result.url,
-        uploadedAt: new Date().toISOString() // Use current time as uploadedAt
+        createdTime: new Date().toISOString(), // Use current time as createdTime
+        imageGeneratedTime: undefined, // Not available from upload result
+        location: undefined, // Not available from upload result
+        description: result.filename // Use filename as description
       }));
       
       setAvailableImages(prev => [...prev, ...newImages]);

@@ -224,7 +224,7 @@ const ObservationFormUI: React.FC<ObservationFormUIProps> = ({
                   onChange={() => onImageSelection(image.id)}
                   disabled={loading}
                 />
-                <label htmlFor={image.id}>{image.description || image.filename}</label>
+                <label htmlFor={image.id}>{image.description || `Image ${image.id}`}</label>
               </div>
             ))}
           </div>

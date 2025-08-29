@@ -112,19 +112,19 @@ describe('ObservationFormUI', () => {
   });
 
   test('should display available images when provided', () => {
-    const availableImages: Image[] = [
-      { id: '1', description: 'image1.jpg', filename: 'image1.jpg', url: 'url1', uploadedAt: '2023-01-01' },
-      { id: '2', description: 'image2.jpg', filename: 'image2.jpg', url: 'url2', uploadedAt: '2023-01-02' }
+    const mockAvailableImages: Image[] = [
+      { id: '1', description: 'image1.jpg', createdTime: '2023-01-01T00:00:00Z', imageGeneratedTime: undefined, location: undefined },
+      { id: '2', description: 'image2.jpg', createdTime: '2023-01-02T00:00:00Z', imageGeneratedTime: undefined, location: undefined }
     ];
-    render(<ObservationFormUI {...defaultProps} availableImages={availableImages} />);
+    render(<ObservationFormUI {...defaultProps} availableImages={mockAvailableImages} />);
     
     expect(screen.getByText('image1.jpg')).toBeInTheDocument();
     expect(screen.getByText('image2.jpg')).toBeInTheDocument();
   });
 
   test('should call onImageSelection when image is selected', () => {
-    const availableImages: Image[] = [{ id: '1', description: 'image1.jpg', filename: 'image1.jpg', url: 'url1', uploadedAt: '2023-01-01' }];
-    render(<ObservationFormUI {...defaultProps} availableImages={availableImages} />);
+    const mockAvailableImages: Image[] = [{ id: '1', description: 'image1.jpg', createdTime: '2023-01-01T00:00:00Z', imageGeneratedTime: undefined, location: undefined }];
+    render(<ObservationFormUI {...defaultProps} availableImages={mockAvailableImages} />);
     
     const imageCheckbox = screen.getByRole('checkbox');
     fireEvent.click(imageCheckbox);
