@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './auth/AuthProvider';
 import { useAuth } from './auth/useAuth';
 import ObservationFormContainer from './containers/ObservationFormContainer';
+import HomePageContainer from './containers/HomePageContainer';
 import HeaderContainer from './containers/HeaderContainer';
 import AuthErrorModal from './components/AuthErrorModal';
 import './styles/ErrorComponents.css';
@@ -95,7 +96,7 @@ const AppContent: React.FC = () => {
       
       <main className="main-content">
         <Routes>
-          <Route path="/" element={<Navigate to="/observation-form" replace />} />
+          <Route path="/" element={<HomePageContainer />} />
           
           <Route 
             path="/observation-form" 
@@ -112,7 +113,7 @@ const AppContent: React.FC = () => {
           
           <Route path="/auth-callback" element={<AuthRedirectHandler />} />
           
-          <Route path="*" element={<Navigate to="/observation-form" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
