@@ -199,32 +199,6 @@ class PermissionService(
         return false
     }
 
-    /**
-     * Grant permissions to a role or user on an object
-     */
-    fun grantPermission(
-        grant: ObjectPermissionCreateModel
-    ): ObjectPermissionModel {
-        // Remove existing permissions for this grantee on this object
-        val id: String = this.permissionIdHash(grant)
-        val existingResponse: Optional<ObjectPermissionDocument> = permissionRepository.findById(id)
-        val objectPermissionDocument: ObjectPermissionDocument
-        if (existingResponse.isEmpty) {
-            objectPermissionDocument = ObjectPermissionDocument(
-                id = id,
-                objectType = grant.objectType,
-                objectId = grant.objectId,
-                granteeType = grant.granteeType,
-                grantee = grant.grantee,
-                permission = grant.permission
-            )
-            permissionRepository.save(objectPermissionDocument)
-        } else {
-            objectPermissionDocument = existingResponse.get()
-        }
-        return objectPermissionDocument.toObjectPermissionModel()
-    }
-
     fun grantPermissions(
         grants: Set<ObjectPermissionCreateModel>
     ): Set<ObjectPermissionModel> {
@@ -299,6 +273,22 @@ class PermissionService(
         )
     }
 
+    fun revokePublicRead(
+        objectType: ObjectType, objectId: String
+    ) {
+        return revokePermissions(
+            setOf(
+                ObjectPermissionCreateModel(
+                    objectType,
+                    objectId,
+                    PermissionGranteeType.ROLE,
+                    SystemRole.PUBLIC.name,
+                    Permission.READ
+                )
+            )
+        )
+    }
+
     /**
      * Revoke permissions for a grantee on an object
      */
@@ -310,6 +300,9 @@ class PermissionService(
         }
         val existingGrants: List<ObjectPermissionDocument> = permissionRepository.findAllById(ids)
         val existingGrantIds: List<String> = existingGrants.map { it.id }.toList()
+        for (grant in grants) {
+            logger.info { "Revoking Grant: ${grant}." }
+        }
         permissionRepository.deleteAllById(existingGrantIds)
     }
 

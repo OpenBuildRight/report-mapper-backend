@@ -107,9 +107,9 @@ class ObservationService(
         observation.updatedTime = now
         observation.enabled = false
         val updatedObservation = observationRepository.save(observation)
-        
+        logger.info{ "Observation ${id} disabled." }
         // Revoke public read access when disabled
-        // ToDO: Revoke public permissions when disabling.
+        permissionService.revokePublicRead(objectType = ObjectType.OBSERVATION, objectId=id)
         return updatedObservation.toObservationModel()
     }
     
