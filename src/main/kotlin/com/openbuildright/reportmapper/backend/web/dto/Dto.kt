@@ -60,7 +60,12 @@ data class ObservationCreateDto(
     val properties: Map<String, String>,
     val description: String,
     val title: String
-)
+ ) : ControllableObject{
+    override val objectType: ObjectType = ObjectType.OBSERVATION
+    override fun getTargetId(): String? {
+        return null
+    }
+}
 
 data class ObservationDto(
     val id: String,
