@@ -4,8 +4,6 @@ import com.openbuildright.reportmapper.backend.security.ObjectPermissionModel
 import com.openbuildright.reportmapper.backend.security.ObjectType
 import com.openbuildright.reportmapper.backend.security.Permission
 import com.openbuildright.reportmapper.backend.security.PermissionGranteeType
-import com.openbuildright.reportmapper.backend.security.SystemRole
-import com.openbuildright.reportmapper.backend.security.UserRoleModel
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.mapping.Document

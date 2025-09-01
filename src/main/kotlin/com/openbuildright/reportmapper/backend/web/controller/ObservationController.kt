@@ -3,8 +3,6 @@ package com.openbuildright.reportmapper.backend.web.controller
 import com.openbuildright.reportmapper.backend.model.ObservationCreateModel
 import com.openbuildright.reportmapper.backend.model.ObservationModel
 import com.openbuildright.reportmapper.backend.model.GeoLocationModel
-import com.openbuildright.reportmapper.backend.security.ObjectType
-import com.openbuildright.reportmapper.backend.security.Permission
 import com.openbuildright.reportmapper.backend.service.ObservationService
 import com.openbuildright.reportmapper.backend.web.dto.ObservationCreateDto
 import com.openbuildright.reportmapper.backend.web.dto.ObservationDto
@@ -14,7 +12,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import java.lang.classfile.TypeAnnotation
 
 @RestController
 @RequestMapping("/observation")
@@ -24,6 +21,7 @@ class ObservationController(
     private val logger = KotlinLogging.logger {}
 
     @PostMapping
+    @PreAuthorize("hasPermission(#dto, 'CREATE')")
     fun createObservation(
         @RequestBody dto: ObservationCreateDto,
         authentication: Authentication
@@ -96,6 +94,7 @@ class ObservationController(
      * Publish an observation (grant public read access)
      */
     @PatchMapping("/{id}/publish")
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'PUBLISH')")
     fun publishObservation(
         @PathVariable id: String,
         authentication: Authentication
@@ -106,21 +105,10 @@ class ObservationController(
     }
 
     /**
-     * Unpublish an observation (revoke public read access)
-     */
-    @PatchMapping("/{id}/unpublish")
-    fun unpublishObservation(
-        @PathVariable id: String,
-        authentication: Authentication
-    ): ResponseEntity<ObservationDto> {
-        logger.info { "User ${authentication.name} attempting to unpublish observation $id" }
-        val observation = observationService.unpublishObservation(id)
-        return ResponseEntity.ok(ObservationDto.fromObservationModel(observation))
-    }
-
-    /**
      * Get current user's observations
+     *
      */
+    // ToDo: AuthorizationForListEndpoints
     @GetMapping("/my-observations")
     fun getMyObservations(authentication: Authentication): List<ObservationDto> {
         return observationService.getObservationsByUser(authentication.name)
@@ -128,17 +116,9 @@ class ObservationController(
     }
 
     /**
-     * Get all published observations (public access)
-     */
-    @GetMapping("/published")
-    fun getPublishedObservations(): List<ObservationDto> {
-        return observationService.getPublishedObservations()
-            .map { ObservationDto.fromObservationModel(it) }
-    }
-
-    /**
      * Admin-only endpoint to get all observations for admin purposes
      */
+    // ToDo: AuthorizationForListEndpoints
     @GetMapping("/admin/all")
     fun getAllObservations(authentication: Authentication): List<ObservationDto> {
         logger.info { "Admin ${authentication.name} accessing all observations" }

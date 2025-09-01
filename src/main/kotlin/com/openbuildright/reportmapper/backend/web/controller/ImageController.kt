@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -23,9 +24,9 @@ import org.springframework.web.server.ResponseStatusException
 @RequestMapping("/image")
 class ImageController(
     @param:Autowired val imageService: ImageService,
-    @param:Autowired val permissionService: PermissionService
 ) {
     @PostMapping(consumes = arrayOf("multipart/form-data"))
+    @PreAuthorize("hasPermission(#dto, 'CREATE')")
     fun createImage(
         @ModelAttribute dto: ImageCreateDto,
         authentication: Authentication
@@ -46,39 +47,32 @@ class ImageController(
                 imageGeneratedTime = dto.imageGeneratedTime,
                 location = location,
                 description = dto.description,
-            )
+            ),
+            authentication.name
         )
         return ImageDto.fromImageModel(image)
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'IMAGE','CREATE')")
     fun getImage(
         @PathVariable id: String,
-        authentication: Authentication?
     ): ImageDto {
-        if (permissionService.hasPermission(ObjectType.IMAGE, id, Permission.READ, authentication)) {
-            return ImageDto.fromImageModel(imageService.getImageMetadata(id))
-        } else {
-            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized.")
-        }
+        return ImageDto.fromImageModel(imageService.getImageMetadata(id))
     }
 
     /**
      * Smart image download endpoint - handles both draft and published images
      * with appropriate access control
      */
-    @GetMapping("/download/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    @GetMapping("/download/{id}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    @PreAuthorize("hasPermission(#id, 'IMAGE','CREATE')")
     fun downloadImage(
-        @PathVariable imageId: String, 
+        @PathVariable id: String,
         @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean,
-        authentication: Authentication?
     ): ResponseEntity<ByteArray> {
             // Check if user has read permission on this image
-        return if (permissionService.hasPermission(ObjectType.IMAGE, imageId, Permission.READ, authentication)) {
-                val imageData = imageService.getImage(imageId, thumbnail).image
-                ResponseEntity.ok(imageData)
-            } else {
-                throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized.")
-            }
+            val imageData = imageService.getImage(id, thumbnail).image
+            return ResponseEntity.ok(imageData)
     }
 }

@@ -1,7 +1,6 @@
 package com.openbuildright.reportmapper.backend.security
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.PermissionEvaluator
 import org.springframework.security.core.Authentication
