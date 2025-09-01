@@ -16,7 +16,7 @@ enum class Permission {
  */
 enum class ObjectType {
     OBSERVATION,
-    IMAGE
+    IMAGE,
 }
 
 /**
@@ -35,3 +35,25 @@ enum class PermissionGranteeType {
     ROLE,  // System roles or custom roles
     USER   // Individual users
 }
+
+data class ObjectPermissionCreateModel(
+    val objectType: ObjectType,
+    val objectId: String,
+    val granteeType: PermissionGranteeType,
+    val grantee: String,
+    val permission: Permission
+)
+
+data class ObjectPermissionModel(
+    val id: String,
+    val objectType: ObjectType,
+    val objectId: String,
+    val granteeType: PermissionGranteeType,
+    val grantee: String,
+    val permission: Permission
+)
+
+data class UserRoleModel(
+    val userId: String,
+    val role: SystemRole
+)

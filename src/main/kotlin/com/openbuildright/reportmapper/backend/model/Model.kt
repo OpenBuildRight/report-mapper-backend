@@ -1,5 +1,6 @@
 package com.openbuildright.reportmapper.backend.model
 
+import org.springframework.data.annotation.Id
 import java.time.Instant
 
 data class GeoLocationModel(
@@ -70,3 +71,4 @@ data class ImageModel(val image: ByteArray, val metadata: ImageMetadataModel) {
         return result
     }
 }
+
