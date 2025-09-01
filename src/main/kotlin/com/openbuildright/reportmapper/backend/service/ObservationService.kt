@@ -166,4 +166,20 @@ class ObservationService(
         return observationRepository.findByEnabledTrue()
             .map { it.toObservationModel() }
     }
+
+    fun  deleteObservations(ids: List<String>) {
+        for (id in ids) {
+            logger.info { "Deleting observation ${id}" }
+        }
+        observationRepository.deleteAllById(ids)
+        for (id in ids) {
+            logger.debug { "Observation ${id} successfully deleted." }
+        }
+        // ToDo: Make a deleteAll method in the repository. However, this is rare so
+        //  we don't need to optimize.
+        ids.parallelStream().forEach{
+            permissionService.deleteObjectPermissions(ObjectType.OBSERVATION, it)
+        }
+        logger.debug { "All permissions revoked on Observations ${ids}" }
+    }
 }

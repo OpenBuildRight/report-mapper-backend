@@ -241,7 +241,7 @@ class PermissionService(
         objectId: String,
         ownerUserId: String
     ): Set<ObjectPermissionModel> {
-        val ownershipPermissions = sequenceOf<Permission>(Permission.READ, Permission.UPDATE, Permission.DISABLE)
+        val ownershipPermissions = sequenceOf(Permission.READ, Permission.UPDATE, Permission.DISABLE, Permission.DELETE)
         val grants: Set<ObjectPermissionCreateModel> = ownershipPermissions.map {
             ObjectPermissionCreateModel(
                 objectType,
@@ -310,9 +310,13 @@ class PermissionService(
      * Delete all permissions for an object
      */
     fun deleteObjectPermissions(objectType: ObjectType, objectId: String) {
+        logger.debug{ "Deleting all permissions on ${objectType} ${objectId}." }
         val objectPermissions: List<ObjectPermissionDocument> =
             permissionRepository.findByObjectTypeAndObjectId(objectType, objectId)
         val ids: List<String> = objectPermissions.map { it.id }.toList()
+        for (grant in objectPermissions) {
+            logger.info{ "Revoking permission: ${grant}." }
+        }
         permissionRepository.deleteAllById(ids)
     }
 }
