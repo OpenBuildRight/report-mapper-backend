@@ -2,6 +2,7 @@ package com.openbuildright.reportmapper.backend.service.config
 
 import com.openbuildright.reportmapper.backend.db.mongo.ImageMetadataDocumentRepository
 import com.openbuildright.reportmapper.backend.db.objectstore.ImageObjectRepository
+import com.openbuildright.reportmapper.backend.security.PermissionService
 import com.openbuildright.reportmapper.backend.service.ImageService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.bind.DefaultValue
@@ -28,7 +29,8 @@ class ImageConfig() {
     fun imageService(
         @Autowired imageRepository: ImageMetadataDocumentRepository,
         @Autowired imageObjectRepository: ImageObjectRepository,
-        @Autowired imageServiceConfigProperties: ImageServiceConfigProperties
+        @Autowired imageServiceConfigProperties: ImageServiceConfigProperties,
+        @Autowired permissionService: PermissionService
     ) : ImageService {
         return ImageService(
             imageRepository,
@@ -37,7 +39,8 @@ class ImageConfig() {
             maxHeight = imageServiceConfigProperties.maxHeight,
             normalizeImage = imageServiceConfigProperties.normalizeImage,
             thumbnailMaxWidth = imageServiceConfigProperties.thumbnailMaxWidth,
-            thumbnailMaxHeight = imageServiceConfigProperties.thumbnailMaxHeight
+            thumbnailMaxHeight = imageServiceConfigProperties.thumbnailMaxHeight,
+            permissionService = permissionService
         )
     }
 }

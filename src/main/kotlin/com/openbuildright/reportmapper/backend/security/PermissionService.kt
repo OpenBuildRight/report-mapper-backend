@@ -3,7 +3,6 @@ package com.openbuildright.reportmapper.backend.security
 import com.openbuildright.reportmapper.backend.security.db.mongo.document.ObjectPermissionDocument
 import com.openbuildright.reportmapper.backend.security.db.mongo.repository.ObjectPermissionDocumentRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -124,7 +123,7 @@ class PermissionService(
             )
             if (objectId != null) {
                 val permissionsDocuments: List<ObjectPermissionDocument> =
-                    permissionRepository.findByObjectTypeObjectIdGranteeTypeGrantee(
+                    permissionRepository.findByObjectTypeAndObjectIdAndGranteeTypeAndGrantee(
                         objectType,
                         objectId,
                         PermissionGranteeType.ROLE,
@@ -136,7 +135,7 @@ class PermissionService(
         if (objectId != null) {
             if (isAuthenticated && userId != null) {
                 val userPermissionDocuments: List<ObjectPermissionDocument> =
-                    permissionRepository.findByObjectTypeObjectIdGranteeTypeGrantee(
+                    permissionRepository.findByObjectTypeAndObjectIdAndGranteeTypeAndGrantee(
                         objectType,
                         objectId,
                         PermissionGranteeType.USER,
@@ -319,7 +318,7 @@ class PermissionService(
      */
     fun deleteObjectPermissions(objectType: ObjectType, objectId: String) {
         val objectPermissions: List<ObjectPermissionDocument> =
-            permissionRepository.findByObjectTypeObjectId(objectType, objectId)
+            permissionRepository.findByObjectTypeAndObjectId(objectType, objectId)
         val ids: List<String> = objectPermissions.map { it.id }.toList()
         permissionRepository.deleteAllById(ids)
     }
