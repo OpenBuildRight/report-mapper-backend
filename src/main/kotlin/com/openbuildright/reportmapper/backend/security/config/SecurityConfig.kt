@@ -1,4 +1,4 @@
-package com.openbuildright.reportmapper.backend.config
+package com.openbuildright.reportmapper.backend.security.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -9,7 +9,6 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-
 
 @Configuration
 @EnableWebSecurity
@@ -43,7 +42,7 @@ class SecurityConfig(
         configuration.allowedHeaders = corsConfig.allowedHeaders
         configuration.allowCredentials = corsConfig.allowCredentials
         configuration.maxAge = corsConfig.maxAge
-        
+
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source

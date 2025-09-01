@@ -2,6 +2,7 @@ package com.openbuildright.reportmapper.backend.security
 
 import com.openbuildright.reportmapper.backend.security.db.mongo.document.ObjectPermissionDocument
 import com.openbuildright.reportmapper.backend.security.db.mongo.repository.ObjectPermissionDocumentRepository
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.util.*
@@ -9,7 +10,6 @@ import java.util.*
 @Service
 class PermissionService(
     private val permissionRepository: ObjectPermissionDocumentRepository,
-    private val jwtScopeExtractor: JwtScopeExtractor
 ) {
 
     fun permissionIdHash(
@@ -18,6 +18,7 @@ class PermissionService(
         return Integer.toHexString(grant.hashCode())
     }
 
+    private val logger = KotlinLogging.logger {}
     val defaultRolePermissions: Set<ObjectPermissionModel> = sequenceOf<ObjectPermissionCreateModel>(
         ObjectPermissionCreateModel(
             ObjectType.OBSERVATION,
@@ -103,7 +104,7 @@ class PermissionService(
 
     fun getPermissions(
         objectType: ObjectType,
-        objectId: String,
+        objectId: String?,
         isAuthenticated: Boolean,
         userId: String?,
         scopes: Set<String>
@@ -121,25 +122,30 @@ class PermissionService(
                     role
                 )
             )
-            val permissionsDocuments: List<ObjectPermissionDocument> =
-                permissionRepository.findByObjectTypeObjectIdGranteeTypeGrantee(
-                    objectType,
-                    objectId,
-                    PermissionGranteeType.ROLE,
-                    role.toString()
-                )
-            permissions.addAll(permissionsDocuments.asSequence().map { it.toObjectPermissionModel() })
+            if (objectId != null) {
+                val permissionsDocuments: List<ObjectPermissionDocument> =
+                    permissionRepository.findByObjectTypeObjectIdGranteeTypeGrantee(
+                        objectType,
+                        objectId,
+                        PermissionGranteeType.ROLE,
+                        role.toString()
+                    )
+                permissions.addAll(permissionsDocuments.asSequence().map { it.toObjectPermissionModel() })
+            }
         }
-        if (isAuthenticated && userId != null) {
-            val userPermissionDocuments: List<ObjectPermissionDocument> =
-                permissionRepository.findByObjectTypeObjectIdGranteeTypeGrantee(
-                    objectType,
-                    objectId,
-                    PermissionGranteeType.USER,
-                    userId
-                )
-            permissions.addAll(userPermissionDocuments.asSequence().map { it.toObjectPermissionModel() })
+        if (objectId != null) {
+            if (isAuthenticated && userId != null) {
+                val userPermissionDocuments: List<ObjectPermissionDocument> =
+                    permissionRepository.findByObjectTypeObjectIdGranteeTypeGrantee(
+                        objectType,
+                        objectId,
+                        PermissionGranteeType.USER,
+                        userId
+                    )
+                permissions.addAll(userPermissionDocuments.asSequence().map { it.toObjectPermissionModel() })
+            }
         }
+        logger.debug { "Obtained permissions ${permissions}" }
         return permissions
     }
 
@@ -148,16 +154,25 @@ class PermissionService(
      */
     fun hasPermission(
         objectType: ObjectType,
-        objectId: String,
+        objectId: String?,
         permission: Permission,
         isAuthenticated: Boolean,
         userId: String?,
         scopes: Set<String>
     ): Boolean {
+        logger.debug {
+            "Determining request has permission ${permission} on ${objectType} ${objectId}."
+        }
+        if (isAuthenticated) {
+            logger.debug { "User ${userId} has scopes ${scopes}" }
+        }
         val userRoles: Set<SystemRole> = getUserRoles(
             isAuthenticated,
             scopes
         )
+        logger.debug {
+            "Request has roles ${userRoles}"
+        }
         // Try default permissions first so we don't have to query the database.
         for (role in userRoles) {
             val defaultPermissionsForRole = getObjectTypeDefaultRolePermissions(
@@ -166,6 +181,7 @@ class PermissionService(
             // Minimize loops because performance matters here.
             for (op in defaultPermissionsForRole) {
                 if (op.permission == permission) {
+                    logger.debug { "Access approved using default permission for role ${role} : ${op}" }
                     return true
                 }
             }
@@ -176,9 +192,11 @@ class PermissionService(
         // Minimizing loops here for performance.
         for (op in allPermissions) {
             if (op.permission == permission) {
+                logger.debug { "Access approved using permission : ${op}" }
                 return true
             }
         }
+
         return false
     }
 
@@ -226,11 +244,19 @@ class PermissionService(
         }.toMap()
         val existingPermissionsResponse: List<ObjectPermissionDocument> =
             permissionRepository.findAllById(documents.keys)
+        for (grant in existingPermissionsResponse) {
+            logger.debug { "Grant already exists. Skipping. ${grant}" }
+        }
         val documentsToCreate: Map<String, ObjectPermissionDocument> = documents.minus(
             existingPermissionsResponse.map { it.id }.toSet()
         )
         val createdPermissions: List<ObjectPermissionDocument> =
             permissionRepository.saveAll<ObjectPermissionDocument>(documentsToCreate.values)
+        for (grant in createdPermissions) {
+            logger.info{
+                "Granting permission: ${grant}"
+            }
+        }
         return (createdPermissions + existingPermissionsResponse).map { it.toObjectPermissionModel() }.toSet()
     }
 

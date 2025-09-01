@@ -3,15 +3,18 @@ package com.openbuildright.reportmapper.backend.web.controller
 import com.openbuildright.reportmapper.backend.model.ObservationCreateModel
 import com.openbuildright.reportmapper.backend.model.ObservationModel
 import com.openbuildright.reportmapper.backend.model.GeoLocationModel
+import com.openbuildright.reportmapper.backend.security.ObjectType
+import com.openbuildright.reportmapper.backend.security.Permission
 import com.openbuildright.reportmapper.backend.service.ObservationService
 import com.openbuildright.reportmapper.backend.web.dto.ObservationCreateDto
 import com.openbuildright.reportmapper.backend.web.dto.ObservationDto
-import com.openbuildright.reportmapper.backend.web.dto.SecureResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import java.lang.classfile.TypeAnnotation
 
 @RestController
 @RequestMapping("/observation")
@@ -42,21 +45,17 @@ class ObservationController(
      * Get observation by ID
      */
     @GetMapping("/{id}")
-    fun getObservation(@PathVariable id: String, authentication: Authentication?): ResponseEntity<SecureResponse<ObservationDto>> {
-        return try {
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'READ')")
+    fun getObservation(
+        @PathVariable id: String,
+        authentication: Authentication?
+    ): ObservationDto {
             val observation = observationService.getObservation(id)
-            val observationDto = ObservationDto.fromObservationModel(observation)
-            
-            // For now, return public access - we'll implement proper permission checking later
-            val response = SecureResponse.public(observationDto)
-            ResponseEntity.ok(response)
-        } catch (e: Exception) {
-            logger.error { "Error getting observation $id: ${e.message}" }
-            ResponseEntity.ok(SecureResponse.denied<ObservationDto>("Observation not found"))
-        }
+            return ObservationDto.fromObservationModel(observation)
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'UPDATE')")
     fun updateObservation(
         @PathVariable id: String,
         @RequestBody dto: ObservationCreateDto,
@@ -78,6 +77,7 @@ class ObservationController(
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'DISABLE')")
     fun disableObservation(@PathVariable id: String): ResponseEntity<Map<String, String>> {
         observationService.disableObservation(id)
         return ResponseEntity.ok(mapOf("message" to "Observation disabled successfully"))

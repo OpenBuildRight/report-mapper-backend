@@ -53,7 +53,7 @@ data class ObjectPermissionModel(
     val permission: Permission
 )
 
-data class UserRoleModel(
-    val userId: String,
-    val role: SystemRole
-)
+interface ControllableObject {
+    val objectType: ObjectType
+    fun getTargetId(): String?
+} 

@@ -1,4 +1,4 @@
-package com.openbuildright.reportmapper.backend.config
+package com.openbuildright.reportmapper.backend.security.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
