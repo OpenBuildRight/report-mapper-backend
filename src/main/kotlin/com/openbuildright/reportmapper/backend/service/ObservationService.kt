@@ -10,6 +10,7 @@ import com.openbuildright.reportmapper.backend.security.ObjectType
 import com.openbuildright.reportmapper.backend.security.PermissionService
 import com.openbuildright.reportmapper.backend.security.PermissionGranteeType
 import geoLocationModelToPoint
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -23,6 +24,7 @@ class ObservationService(
     @Autowired val imageService: ImageService,
     @Autowired val permissionService: PermissionService
 ) {
+    private val logger = KotlinLogging.logger {}
 
     fun createObservation(observationModel: ObservationCreateModel): ObservationModel {
         val now: Instant = Instant.now()
@@ -48,6 +50,9 @@ class ObservationService(
         val returnedObservation = observationRepository.save(observation)
         
         // Grant ownership permissions to the creator
+        logger.debug {
+            "Granting permissions on observation ${observationId} to user ${observationModel.reporterId}"
+        }
         permissionService.grantOwnership(ObjectType.OBSERVATION, observationId, observationModel.reporterId)
         
         return returnedObservation.toObservationModel()
@@ -104,8 +109,7 @@ class ObservationService(
         val updatedObservation = observationRepository.save(observation)
         
         // Revoke public read access when disabled
-        permissionService.revokePermission(ObjectType.OBSERVATION, id, PermissionGranteeType.ROLE, "PUBLIC")
-        
+        // ToDO: Revoke public permissions when disabling.
         return updatedObservation.toObservationModel()
     }
     
@@ -134,18 +138,6 @@ class ObservationService(
         
         // Grant public read access
         permissionService.grantPublicRead(ObjectType.OBSERVATION, id, publishedBy)
-        
-        return observation
-    }
-    
-    /**
-     * Unpublish an observation (revoke public read access)
-     */
-    fun unpublishObservation(id: String): ObservationModel {
-        val observation = getObservation(id)
-        
-        // Revoke public read access
-        permissionService.revokePermission(ObjectType.OBSERVATION, id, PermissionGranteeType.ROLE, "PUBLIC")
         
         return observation
     }
