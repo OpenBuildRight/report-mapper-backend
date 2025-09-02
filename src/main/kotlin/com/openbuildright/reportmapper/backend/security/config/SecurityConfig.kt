@@ -1,20 +1,20 @@
 package com.openbuildright.reportmapper.backend.security.config
 
 import com.openbuildright.reportmapper.backend.security.RmPermissionEvaluator
+import com.openbuildright.reportmapper.backend.security.SystemRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.http.HttpMethod;
 
 
 @Configuration
@@ -30,12 +30,19 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers(
+                    HttpMethod.GET,
                     "/actuator/health",  // Allow health checks without authentication
                     "/swagger-ui/*",
                     "/v3/api-docs",
                     "/v3/api-docs/*",
-                    "/image/published/**"  // Allow published images without authentication
+                    "/images/published",
+                    "/observation/published"
                     ).permitAll()
+                it.requestMatchers(
+                    "/actuator/**",  // Allow health checks without authentication
+                ).hasAuthority(
+                    SystemRole.ADMIN.name
+                )
                 it.anyRequest().authenticated()
             }.oauth2ResourceServer { it.jwt {  } }
         return http.build()

@@ -7,6 +7,7 @@ import com.openbuildright.reportmapper.backend.service.ObservationService
 import com.openbuildright.reportmapper.backend.web.dto.ObservationCreateDto
 import com.openbuildright.reportmapper.backend.web.dto.ObservationDto
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.security.PermitAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -126,7 +127,7 @@ class ObservationController(
     }
 
     @GetMapping("/published")
-    @PreAuthorize("preAuthorize()")
+    @PermitAll
     fun getPublishedObservations(): List<ObservationDto> {
         return observationService.getPublishedObservations().map{ ObservationDto.fromObservationModel(it) }.toList()
     }
