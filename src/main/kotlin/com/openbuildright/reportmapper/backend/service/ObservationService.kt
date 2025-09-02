@@ -5,10 +5,8 @@ import com.openbuildright.reportmapper.backend.db.mongo.ObservationDocument
 import com.openbuildright.reportmapper.backend.exception.NotFoundException
 import com.openbuildright.reportmapper.backend.model.ObservationCreateModel
 import com.openbuildright.reportmapper.backend.model.ObservationModel
-import com.openbuildright.reportmapper.backend.model.GeoLocationModel
 import com.openbuildright.reportmapper.backend.security.ObjectType
 import com.openbuildright.reportmapper.backend.security.PermissionService
-import com.openbuildright.reportmapper.backend.security.PermissionGranteeType
 import geoLocationModelToPoint
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -167,6 +165,9 @@ class ObservationService(
             .map { it.toObservationModel() }
     }
 
+    /*
+    * Delete observations and associated permissions.
+     */
     fun  deleteObservations(ids: List<String>) {
         for (id in ids) {
             logger.info { "Deleting observation ${id}" }
@@ -177,9 +178,18 @@ class ObservationService(
         }
         // ToDo: Make a deleteAll method in the repository. However, this is rare so
         //  we don't need to optimize.
+        logger.debug{"Deleting all permissions for observations ${ids} due to deletion of objects.."}
         ids.parallelStream().forEach{
-            permissionService.deleteObjectPermissions(ObjectType.OBSERVATION, it)
+            permissionService.revokeObjectPermissions(ObjectType.OBSERVATION, it)
         }
         logger.debug { "All permissions revoked on Observations ${ids}" }
+    }
+
+    fun deleteObservationsWithImages(ids: List<String>) {
+        val documents = observationRepository.findAllById(ids)
+        val images : List<String> = documents.map{it.id}.toList()
+        logger.info{ "Deleting images for observations: ${ids}." }
+        imageService.deleteImages(images)
+        deleteObservations(ids)
     }
 }

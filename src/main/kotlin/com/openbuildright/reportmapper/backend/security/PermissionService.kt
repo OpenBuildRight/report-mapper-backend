@@ -4,18 +4,12 @@ import com.openbuildright.reportmapper.backend.security.db.mongo.document.Object
 import com.openbuildright.reportmapper.backend.security.db.mongo.repository.ObjectPermissionDocumentRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class PermissionService(
     private val permissionRepository: ObjectPermissionDocumentRepository,
 ) {
 
-    fun permissionIdHash(
-        grant: ObjectPermissionCreateModel
-    ): String {
-        return Integer.toHexString(grant.hashCode())
-    }
 
     private val logger = KotlinLogging.logger {}
     val defaultRolePermissions: Set<ObjectPermissionModel> = sequenceOf<ObjectPermissionCreateModel>(
@@ -71,6 +65,15 @@ class PermissionService(
             it.permission
         )
     }.toSet()
+
+    /**
+     * Create a permission id based on attributes.
+     */
+    fun permissionIdHash(
+        grant: ObjectPermissionCreateModel
+    ): String {
+        return Integer.toHexString(grant.hashCode())
+    }
 
 
     fun getUserRoles(
@@ -203,7 +206,7 @@ class PermissionService(
         grants: Set<ObjectPermissionCreateModel>
     ): Set<ObjectPermissionModel> {
         // Remove existing permissions for this grantee on this object
-        val documents: Map<String, ObjectPermissionDocument> = grants.asSequence().map {
+        val documents: List<ObjectPermissionDocument> = grants.asSequence().map {
             ObjectPermissionDocument(
                 id = permissionIdHash(it),
                 objectType = it.objectType,
@@ -212,25 +215,12 @@ class PermissionService(
                 grantee = it.grantee,
                 permission = it.permission
             )
-        }.map {
-            it.id to it
-        }.toMap()
-        val existingPermissionsResponse: List<ObjectPermissionDocument> =
-            permissionRepository.findAllById(documents.keys)
-        for (grant in existingPermissionsResponse) {
-            logger.debug { "Grant already exists. Skipping. ${grant}" }
+        }.toList()
+        val savedDocuments = permissionRepository.saveAll(documents)
+        for (document in savedDocuments) {
+            logger.info{"Granted permission: ${document}"}
         }
-        val documentsToCreate: Map<String, ObjectPermissionDocument> = documents.minus(
-            existingPermissionsResponse.map { it.id }.toSet()
-        )
-        val createdPermissions: List<ObjectPermissionDocument> =
-            permissionRepository.saveAll<ObjectPermissionDocument>(documentsToCreate.values)
-        for (grant in createdPermissions) {
-            logger.info{
-                "Granting permission: ${grant}"
-            }
-        }
-        return (createdPermissions + existingPermissionsResponse).map { it.toObjectPermissionModel() }.toSet()
+        return savedDocuments.asSequence().map { it.toObjectPermissionModel() }.toSet()
     }
 
     /**
@@ -260,6 +250,7 @@ class PermissionService(
      * Grant public read access to an object
      */
     fun grantPublicRead(objectType: ObjectType, objectId: String, grantedBy: String): Set<ObjectPermissionModel> {
+
         return grantPermissions(
             setOf(
                 ObjectPermissionCreateModel(
@@ -275,48 +266,26 @@ class PermissionService(
 
     fun revokePublicRead(
         objectType: ObjectType, objectId: String
-    ) {
-        return revokePermissions(
-            setOf(
-                ObjectPermissionCreateModel(
-                    objectType,
-                    objectId,
-                    PermissionGranteeType.ROLE,
-                    SystemRole.PUBLIC.name,
-                    Permission.READ
-                )
-            )
+    ) : Set<ObjectPermissionModel> {
+        val deleted: List<ObjectPermissionDocument> = permissionRepository.deleteByObjectTypeAndObjectIdAndGranteeTypeAndGranteeAndPermission(
+            objectType = objectType,
+            objectId = objectId,
+            granteeType = PermissionGranteeType.ROLE,
+            grantee = SystemRole.PUBLIC.name,
+            permission = Permission.READ
         )
-    }
-
-    /**
-     * Revoke permissions for a grantee on an object
-     */
-    fun revokePermissions(
-        grants: Set<ObjectPermissionCreateModel>
-    ) {
-        val ids = grants.map {
-            permissionIdHash(it)
-        }
-        val existingGrants: List<ObjectPermissionDocument> = permissionRepository.findAllById(ids)
-        val existingGrantIds: List<String> = existingGrants.map { it.id }.toList()
-        for (grant in grants) {
-            logger.info { "Revoking Grant: ${grant}." }
-        }
-        permissionRepository.deleteAllById(existingGrantIds)
+        return deleted.asSequence().map{it.toObjectPermissionModel()}.toSet()
     }
 
     /**
      * Delete all permissions for an object
      */
-    fun deleteObjectPermissions(objectType: ObjectType, objectId: String) {
+    fun revokeObjectPermissions(objectType: ObjectType, objectId: String) : Set<ObjectPermissionModel> {
         logger.debug{ "Deleting all permissions on ${objectType} ${objectId}." }
-        val objectPermissions: List<ObjectPermissionDocument> =
-            permissionRepository.findByObjectTypeAndObjectId(objectType, objectId)
-        val ids: List<String> = objectPermissions.map { it.id }.toList()
-        for (grant in objectPermissions) {
-            logger.info{ "Revoking permission: ${grant}." }
+        val deleted: List<ObjectPermissionDocument> = permissionRepository.deleteByObjectTypeAndObjectId(objectType, objectId)
+        for (grant in deleted) {
+            logger.info{ "Permission Revoked: ${grant}." }
         }
-        permissionRepository.deleteAllById(ids)
+        return deleted.asSequence().map{ it.toObjectPermissionModel() }.toSet()
     }
 }

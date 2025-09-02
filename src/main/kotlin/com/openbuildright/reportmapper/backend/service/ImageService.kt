@@ -97,4 +97,23 @@ class ImageService(
     fun listImagesMetadata(ids: Set<String>): Set<ImageMetadataModel> {
         return ids.parallelStream().map { getImageMetadata(it) }.toList().toSet()
     }
+
+    /*
+    * Delete images and associated permissions.
+     */
+    fun  deleteImages(ids: List<String>) {
+        for (id in ids) {
+            logger.info { "Deleting observation ${id}" }
+        }
+        imageRepository.deleteAllById(ids)
+        logger.debug { "Images successfully deleted: ${ids}" }
+        logger.debug { "Deleting all permissions for images due to deletion of images ${ids}" }
+        ids.parallelStream().forEach {
+            permissionService.revokeObjectPermissions(
+                ObjectType.IMAGE,
+                it
+            )
+        }
+    }
+
 }
