@@ -3,6 +3,8 @@ package com.openbuildright.reportmapper.backend.web.dto
 import com.openbuildright.reportmapper.backend.model.GeoLocationModel
 import com.openbuildright.reportmapper.backend.model.ImageMetadataModel
 import com.openbuildright.reportmapper.backend.model.ObservationModel
+import com.openbuildright.reportmapper.backend.security.ControllableObject
+import com.openbuildright.reportmapper.backend.security.ObjectType
 import org.springframework.web.multipart.MultipartFile
 import java.time.Instant
 
@@ -33,8 +35,11 @@ data class ImageDto(
     val imageGeneratedTime: Instant?,
     val location: GeoLocationDto?,
     val description: String?
-) {
-
+) : ControllableObject {
+    override val objectType: ObjectType = ObjectType.OBSERVATION
+    override fun getTargetId(): String? {
+        return id
+    }
     companion object {
         fun fromImageModel(value: ImageMetadataModel): ImageDto {
             return ImageDto(
@@ -55,7 +60,12 @@ data class ObservationCreateDto(
     val properties: Map<String, String>,
     val description: String,
     val title: String
-)
+ ) : ControllableObject{
+    override val objectType: ObjectType = ObjectType.OBSERVATION
+    override fun getTargetId(): String? {
+        return null
+    }
+}
 
 data class ObservationDto(
     val id: String,
@@ -68,7 +78,11 @@ data class ObservationDto(
     val enabled: Boolean,
     val description: String,
     val title: String
-) {
+) : ControllableObject {
+    override val objectType: ObjectType = ObjectType.OBSERVATION
+    override fun getTargetId(): String? {
+        return id
+    }
     companion object {
         fun fromObservationModel(observation: ObservationModel): ObservationDto {
             return ObservationDto(
@@ -78,7 +92,7 @@ data class ObservationDto(
                 updatedTime = observation.updatedTime,
                 location = GeoLocationDto.fromGeoLocationModel(observation.location),
                 properties = observation.properties,
-                enabled = observation.enabled,
+                enabled = observation.published,
                 imageIds = observation.imageIds,
                 description = observation.description,
                 title = observation.title,
@@ -93,5 +107,10 @@ data class ImageCreateDto(
     val latitude: Double?,
     val longitude: Double?,
     val description: String?,
-    val imageGeneratedTime: Instant?
-)
+    val imageGeneratedTime: Instant?,
+) : ControllableObject {
+    override val objectType: ObjectType = ObjectType.IMAGE
+    override fun getTargetId(): String? {
+        return null
+    }
+}

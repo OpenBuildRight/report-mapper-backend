@@ -5,11 +5,10 @@ import com.openbuildright.reportmapper.backend.db.mongo.ObservationDocument
 import com.openbuildright.reportmapper.backend.exception.NotFoundException
 import com.openbuildright.reportmapper.backend.model.ObservationCreateModel
 import com.openbuildright.reportmapper.backend.model.ObservationModel
-import com.openbuildright.reportmapper.backend.model.GeoLocationModel
 import com.openbuildright.reportmapper.backend.security.ObjectType
 import com.openbuildright.reportmapper.backend.security.PermissionService
-import com.openbuildright.reportmapper.backend.security.PermissionGranteeType
 import geoLocationModelToPoint
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -23,6 +22,7 @@ class ObservationService(
     @Autowired val imageService: ImageService,
     @Autowired val permissionService: PermissionService
 ) {
+    private val logger = KotlinLogging.logger {}
 
     fun createObservation(observationModel: ObservationCreateModel): ObservationModel {
         val now: Instant = Instant.now()
@@ -38,7 +38,7 @@ class ObservationService(
             createdTime = now,
             updatedTime = now,
             location = geoLocationModelToPoint(observationModel.location),
-            enabled = true, // Start as enabled
+            published = false,
             imageIds = images.stream().map { it.id }.toList().toSet(),
             reporterId = observationModel.reporterId,
             properties = observationModel.properties,
@@ -48,6 +48,9 @@ class ObservationService(
         val returnedObservation = observationRepository.save(observation)
         
         // Grant ownership permissions to the creator
+        logger.debug {
+            "Granting permissions on observation ${observationId} to user ${observationModel.reporterId}"
+        }
         permissionService.grantOwnership(ObjectType.OBSERVATION, observationId, observationModel.reporterId)
         
         return returnedObservation.toObservationModel()
@@ -92,7 +95,7 @@ class ObservationService(
     /**
      * Soft delete - disable an observation
      */
-    fun disableObservation(id: String): ObservationModel {
+    fun unpublishObservation(id: String): ObservationModel {
         val observationResponse: Optional<ObservationDocument?> = observationRepository.findById(id)
         if (observationResponse.isEmpty) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Observation ${id} not found.")
@@ -100,19 +103,19 @@ class ObservationService(
         val observation: ObservationDocument = observationResponse.get()
         val now: Instant = Instant.now()
         observation.updatedTime = now
-        observation.enabled = false
+        observation.published = false
         val updatedObservation = observationRepository.save(observation)
-        
+        imageService.unpublishImages(observation.imageIds)
+        logger.info{ "Observation ${id} disabled." }
         // Revoke public read access when disabled
-        permissionService.revokePermission(ObjectType.OBSERVATION, id, PermissionGranteeType.ROLE, "PUBLIC")
-        
+        permissionService.revokePublicRead(objectType = ObjectType.OBSERVATION, objectId=id)
         return updatedObservation.toObservationModel()
     }
     
     /**
      * Re-enable a disabled observation
      */
-    fun enableObservation(id: String): ObservationModel {
+    fun publishObservation(id: String): ObservationModel {
         val observationResponse: Optional<ObservationDocument?> = observationRepository.findById(id)
         if (observationResponse.isEmpty) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Observation ${id} not found.")
@@ -120,34 +123,14 @@ class ObservationService(
         val observation: ObservationDocument = observationResponse.get()
         val now: Instant = Instant.now()
         observation.updatedTime = now
-        observation.enabled = true
+        observation.published = true
         val updatedObservation = observationRepository.save(observation)
-        
-        return updatedObservation.toObservationModel()
-    }
+        permissionService.grantPublicRead(ObjectType.OBSERVATION, id)
+        imageService.publishImages(observation.imageIds)
+        observation.imageIds.parallelStream().forEach {
 
-    /**
-     * Publish an observation (grant public read access)
-     */
-    fun publishObservation(id: String, publishedBy: String): ObservationModel {
-        val observation = getObservation(id)
-        
-        // Grant public read access
-        permissionService.grantPublicRead(ObjectType.OBSERVATION, id, publishedBy)
-        
-        return observation
-    }
-    
-    /**
-     * Unpublish an observation (revoke public read access)
-     */
-    fun unpublishObservation(id: String): ObservationModel {
-        val observation = getObservation(id)
-        
-        // Revoke public read access
-        permissionService.revokePermission(ObjectType.OBSERVATION, id, PermissionGranteeType.ROLE, "PUBLIC")
-        
-        return observation
+        }
+        return updatedObservation.toObservationModel()
     }
 
     /**
@@ -155,7 +138,7 @@ class ObservationService(
      */
     fun getObservationsByUser(username: String): List<ObservationModel> {
         return observationRepository.findByReporterId(username)
-            .filter { it.enabled } // Only return enabled observations
+            .filter { it.published } // Only return enabled observations
             .map { it.toObservationModel() }
     }
 
@@ -171,7 +154,35 @@ class ObservationService(
      * Get all published (enabled) observations
      */
     fun getPublishedObservations(): List<ObservationModel> {
-        return observationRepository.findByEnabledTrue()
+        return observationRepository.findByPublishedTrue()
             .map { it.toObservationModel() }
+    }
+
+    /*
+    * Delete observations and associated permissions.
+     */
+    fun  deleteObservations(ids: List<String>) {
+        for (id in ids) {
+            logger.info { "Deleting observation ${id}" }
+        }
+        observationRepository.deleteAllById(ids)
+        for (id in ids) {
+            logger.debug { "Observation ${id} successfully deleted." }
+        }
+        // ToDo: Make a deleteAll method in the repository. However, this is rare so
+        //  we don't need to optimize.
+        logger.debug{"Deleting all permissions for observations ${ids} due to deletion of objects.."}
+        ids.parallelStream().forEach{
+            permissionService.revokeObjectPermissions(ObjectType.OBSERVATION, it)
+        }
+        logger.debug { "All permissions revoked on Observations ${ids}" }
+    }
+
+    fun deleteObservationsWithImages(ids: List<String>) {
+        val documents = observationRepository.findAllById(ids)
+        val images : List<String> = documents.map{it.id}.toList()
+        logger.info{ "Deleting images for observations: ${ids}." }
+        imageService.deleteImages(images)
+        deleteObservations(ids)
     }
 }

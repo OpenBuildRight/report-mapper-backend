@@ -9,7 +9,10 @@ import com.openbuildright.reportmapper.backend.image.resizeImage
 import com.openbuildright.reportmapper.backend.model.ImageMetadataCreateModel
 import com.openbuildright.reportmapper.backend.model.ImageMetadataModel
 import com.openbuildright.reportmapper.backend.model.ImageModel
+import com.openbuildright.reportmapper.backend.security.ObjectType
+import com.openbuildright.reportmapper.backend.security.PermissionService
 import geoLocationModelToPoint
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.geo.Point
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -23,12 +26,15 @@ class ImageService(
     val maxHeight: Int,
     val normalizeImage: Boolean,
     val thumbnailMaxWidth: Int,
-    val thumbnailMaxHeight: Int
+    val thumbnailMaxHeight: Int,
+    val permissionService: PermissionService
 ) {
+    private val logger = KotlinLogging.logger {}
 
     fun createImage(
         data: ByteArray,
         metadata: ImageMetadataCreateModel,
+        creatorUserId: String
     ): ImageMetadataModel {
         val imageId: String = UUID.randomUUID().toString() + ".jpeg"
         val objectKey: String = Instant.now().epochSecond.toString() + "/" + imageId
@@ -59,8 +65,14 @@ class ImageService(
 
         imageObjectRepository.put(objectKey, resizedImage)
         imageObjectRepository.put(thumbnailObjectKey, thumbnailImage)
+        logger.debug { "Image ${imageId} objects saved to ${objectKey} and ${thumbnailObjectKey}." }
 
         val metadataDocumentResponse: ImageMetadataDocument = imageRepository.save(metadataDocument)
+        logger.debug { "Image ${imageId} metadata saved." }
+        permissionService.grantOwnership(
+            ObjectType.IMAGE, imageId, creatorUserId
+        )
+        logger.debug { "Permissions set for creator ${creatorUserId} on image ${imageId}" }
         return metadataDocumentResponse.toImageMetadataModel()
     }
 
@@ -85,4 +97,38 @@ class ImageService(
     fun listImagesMetadata(ids: Set<String>): Set<ImageMetadataModel> {
         return ids.parallelStream().map { getImageMetadata(it) }.toList().toSet()
     }
+
+    /*
+    * Delete images and associated permissions.
+     */
+    fun  deleteImages(ids: List<String>) {
+        for (id in ids) {
+            logger.info { "Deleting observation ${id}" }
+        }
+        // ToDo: Delete Image Objects in Object Store
+        imageRepository.deleteAllById(ids)
+        logger.debug { "Images successfully deleted: ${ids}" }
+        logger.debug { "Deleting all permissions for images due to deletion of images ${ids}" }
+        ids.parallelStream().forEach {
+            permissionService.revokeObjectPermissions(
+                ObjectType.IMAGE,
+                it
+            )
+        }
+    }
+
+    fun publishImages(ids: Set<String>) {
+        // ToDo: Add Method to Repository to do thsi in one query.
+        ids.parallelStream().forEach {
+            permissionService.grantPublicRead(ObjectType.IMAGE, it)
+        }
+    }
+
+    fun unpublishImages(ids: Set<String>) {
+        // ToDo: Add Method to Repository to do thsi in one query.
+        ids.parallelStream().forEach {
+            permissionService.revokePublicRead(ObjectType.IMAGE, it)
+        }
+    }
+
 }

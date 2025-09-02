@@ -6,10 +6,11 @@ import com.openbuildright.reportmapper.backend.model.GeoLocationModel
 import com.openbuildright.reportmapper.backend.service.ObservationService
 import com.openbuildright.reportmapper.backend.web.dto.ObservationCreateDto
 import com.openbuildright.reportmapper.backend.web.dto.ObservationDto
-import com.openbuildright.reportmapper.backend.web.dto.SecureResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.security.PermitAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
@@ -21,6 +22,7 @@ class ObservationController(
     private val logger = KotlinLogging.logger {}
 
     @PostMapping
+    @PreAuthorize("hasPermission(#dto, 'CREATE')")
     fun createObservation(
         @RequestBody dto: ObservationCreateDto,
         authentication: Authentication
@@ -42,21 +44,17 @@ class ObservationController(
      * Get observation by ID
      */
     @GetMapping("/{id}")
-    fun getObservation(@PathVariable id: String, authentication: Authentication?): ResponseEntity<SecureResponse<ObservationDto>> {
-        return try {
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'READ')")
+    fun getObservation(
+        @PathVariable id: String,
+        authentication: Authentication?
+    ): ObservationDto {
             val observation = observationService.getObservation(id)
-            val observationDto = ObservationDto.fromObservationModel(observation)
-            
-            // For now, return public access - we'll implement proper permission checking later
-            val response = SecureResponse.public(observationDto)
-            ResponseEntity.ok(response)
-        } catch (e: Exception) {
-            logger.error { "Error getting observation $id: ${e.message}" }
-            ResponseEntity.ok(SecureResponse.denied<ObservationDto>("Observation not found"))
-        }
+            return ObservationDto.fromObservationModel(observation)
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'UPDATE')")
     fun updateObservation(
         @PathVariable id: String,
         @RequestBody dto: ObservationCreateDto,
@@ -78,8 +76,9 @@ class ObservationController(
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'DISABLE')")
     fun disableObservation(@PathVariable id: String): ResponseEntity<Map<String, String>> {
-        observationService.disableObservation(id)
+        observationService.unpublishObservation(id)
         return ResponseEntity.ok(mapOf("message" to "Observation disabled successfully"))
     }
 
@@ -88,7 +87,7 @@ class ObservationController(
      */
     @PatchMapping("/{id}/enable")
     fun enableObservation(@PathVariable id: String): ResponseEntity<ObservationDto> {
-        val observation = observationService.enableObservation(id)
+        val observation = observationService.publishObservation(id)
         return ResponseEntity.ok(ObservationDto.fromObservationModel(observation))
     }
 
@@ -96,30 +95,19 @@ class ObservationController(
      * Publish an observation (grant public read access)
      */
     @PatchMapping("/{id}/publish")
+    @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'PUBLISH')")
     fun publishObservation(
         @PathVariable id: String,
         authentication: Authentication
     ): ResponseEntity<ObservationDto> {
         logger.info { "User ${authentication.name} attempting to publish observation $id" }
-        val observation = observationService.publishObservation(id, authentication.name)
-        return ResponseEntity.ok(ObservationDto.fromObservationModel(observation))
-    }
-
-    /**
-     * Unpublish an observation (revoke public read access)
-     */
-    @PatchMapping("/{id}/unpublish")
-    fun unpublishObservation(
-        @PathVariable id: String,
-        authentication: Authentication
-    ): ResponseEntity<ObservationDto> {
-        logger.info { "User ${authentication.name} attempting to unpublish observation $id" }
-        val observation = observationService.unpublishObservation(id)
+        val observation = observationService.publishObservation(id)
         return ResponseEntity.ok(ObservationDto.fromObservationModel(observation))
     }
 
     /**
      * Get current user's observations
+     *
      */
     @GetMapping("/my-observations")
     fun getMyObservations(authentication: Authentication): List<ObservationDto> {
@@ -128,21 +116,19 @@ class ObservationController(
     }
 
     /**
-     * Get all published observations (public access)
-     */
-    @GetMapping("/published")
-    fun getPublishedObservations(): List<ObservationDto> {
-        return observationService.getPublishedObservations()
-            .map { ObservationDto.fromObservationModel(it) }
-    }
-
-    /**
      * Admin-only endpoint to get all observations for admin purposes
      */
     @GetMapping("/admin/all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAllObservations(authentication: Authentication): List<ObservationDto> {
         logger.info { "Admin ${authentication.name} accessing all observations" }
         return observationService.getAllObservations()
             .map { ObservationDto.fromObservationModel(it) }
+    }
+
+    @GetMapping("/published")
+    @PermitAll
+    fun getPublishedObservations(): List<ObservationDto> {
+        return observationService.getPublishedObservations().map{ ObservationDto.fromObservationModel(it) }.toList()
     }
 }

@@ -11,20 +11,25 @@ import com.openbuildright.reportmapper.backend.web.InvalidImageFile
 import com.openbuildright.reportmapper.backend.web.dto.ImageCreateDto
 import com.openbuildright.reportmapper.backend.web.dto.ImageDto
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/image")
 class ImageController(
     @param:Autowired val imageService: ImageService,
-    @param:Autowired val permissionService: PermissionService
 ) {
     @PostMapping(consumes = arrayOf("multipart/form-data"))
+    @PreAuthorize("hasPermission(#dto, 'CREATE')")
     fun createImage(
         @ModelAttribute dto: ImageCreateDto,
+        authentication: Authentication
         ): ImageDto {
         var location: GeoLocationModel? = null
         if (dto.latitude != null && dto.longitude != null) {
@@ -42,13 +47,17 @@ class ImageController(
                 imageGeneratedTime = dto.imageGeneratedTime,
                 location = location,
                 description = dto.description,
-            )
+            ),
+            authentication.name
         )
         return ImageDto.fromImageModel(image)
     }
 
     @GetMapping("/{id}")
-    fun getImage(@PathVariable id: String): ImageDto {
+    @PreAuthorize("hasPermission(#id, 'IMAGE','CREATE')")
+    fun getImage(
+        @PathVariable id: String,
+    ): ImageDto {
         return ImageDto.fromImageModel(imageService.getImageMetadata(id))
     }
 
@@ -56,79 +65,14 @@ class ImageController(
      * Smart image download endpoint - handles both draft and published images
      * with appropriate access control
      */
-    @GetMapping("/download/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    @GetMapping("/download/{id}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    @PreAuthorize("hasPermission(#id, 'IMAGE','CREATE')")
     fun downloadImage(
-        @PathVariable imageId: String, 
+        @PathVariable id: String,
         @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean,
-        authentication: Authentication?
     ): ResponseEntity<ByteArray> {
-        return try {
             // Check if user has read permission on this image
-            if (permissionService.hasPermission(ObjectType.IMAGE, imageId, Permission.READ, authentication)) {
-                val imageData = imageService.getImage(imageId, thumbnail).image
-                ResponseEntity.ok(imageData)
-            } else {
-                ResponseEntity.status(403).build()
-            }
-        } catch (e: Exception) {
-            ResponseEntity.status(404).build()
-        }
-    }
-
-    /**
-     * Smart thumbnail download endpoint - handles both draft and published images
-     * with appropriate access control
-     */
-    @GetMapping("/download/thumbnail-{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    fun downloadThumbnail(
-        @PathVariable imageId: String,
-        authentication: Authentication?
-    ): ResponseEntity<ByteArray> {
-        return downloadImage(imageId, true, authentication)
-    }
-
-    // Legacy endpoints for backward compatibility
-    @GetMapping("/draft/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    fun downloadDraftImage(
-        @PathVariable imageId: String, 
-        @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean,
-        authentication: Authentication?
-    ): ResponseEntity<ByteArray> {
-        if (authentication == null) {
-            return ResponseEntity.status(401).build()
-        }
-        
-        return if (permissionService.hasPermission(ObjectType.IMAGE, imageId, Permission.READ, authentication)) {
-            val imageData = imageService.getImage(imageId, thumbnail).image
-            ResponseEntity.ok(imageData)
-        } else {
-            ResponseEntity.status(403).build()
-        }
-    }
-
-    @GetMapping("/draft/thumbnail-{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    fun downloadDraftThumbnail(
-        @PathVariable imageId: String,
-        authentication: Authentication?
-    ): ResponseEntity<ByteArray> {
-        return downloadDraftImage(imageId, true, authentication)
-    }
-
-    @GetMapping("/published/{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    fun downloadPublishedImage(
-        @PathVariable imageId: String, 
-        @RequestParam(required = false, defaultValue = "false") thumbnail: Boolean
-    ): ResponseEntity<ByteArray> {
-        return if (permissionService.hasPermission(ObjectType.IMAGE, imageId, Permission.READ, null)) {
-            val imageData = imageService.getImage(imageId, thumbnail).image
-            ResponseEntity.ok(imageData)
-        } else {
-            ResponseEntity.status(404).build()
-        }
-    }
-
-    @GetMapping("/published/thumbnail-{imageId}", produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    fun downloadPublishedThumbnail(@PathVariable imageId: String): ResponseEntity<ByteArray> {
-        return downloadPublishedImage(imageId, true)
+            val imageData = imageService.getImage(id, thumbnail).image
+            return ResponseEntity.ok(imageData)
     }
 }

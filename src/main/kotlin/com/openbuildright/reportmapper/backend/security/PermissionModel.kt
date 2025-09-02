@@ -4,11 +4,12 @@ package com.openbuildright.reportmapper.backend.security
  * Available permissions for objects
  */
 enum class Permission {
-    READ,      // View the object
-    UPDATE,    // Modify the object (but not delete)
-    CREATE,    // Create new objects of this type
-    DISABLE,   // Disable/enable the object (soft delete)
-    PUBLISH    // Publish/unpublish the object (grant/revoke public access)
+    READ,
+    UPDATE,
+    CREATE,
+    DISABLE,
+    PUBLISH,
+    DELETE
 }
 
 /**
@@ -16,7 +17,7 @@ enum class Permission {
  */
 enum class ObjectType {
     OBSERVATION,
-    IMAGE
+    IMAGE,
 }
 
 /**
@@ -35,3 +36,25 @@ enum class PermissionGranteeType {
     ROLE,  // System roles or custom roles
     USER   // Individual users
 }
+
+data class ObjectPermissionCreateModel(
+    val objectType: ObjectType,
+    val objectId: String,
+    val granteeType: PermissionGranteeType,
+    val grantee: String,
+    val permission: Permission
+)
+
+data class ObjectPermissionModel(
+    val id: String,
+    val objectType: ObjectType,
+    val objectId: String,
+    val granteeType: PermissionGranteeType,
+    val grantee: String,
+    val permission: Permission
+)
+
+interface ControllableObject {
+    val objectType: ObjectType
+    fun getTargetId(): String?
+} 

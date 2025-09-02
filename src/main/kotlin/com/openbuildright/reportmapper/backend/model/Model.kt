@@ -24,7 +24,7 @@ data class ObservationModel(
     val updatedTime: Instant,
     val location: GeoLocationModel,
     val properties: Map<String, String>,
-    val enabled: Boolean,
+    val published: Boolean,
     val imageIds: Set<String>,
     val reporterId: String,
     val description: String,
@@ -70,3 +70,4 @@ data class ImageModel(val image: ByteArray, val metadata: ImageMetadataModel) {
         return result
     }
 }
+
