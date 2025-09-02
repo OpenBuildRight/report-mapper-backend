@@ -105,6 +105,7 @@ class ImageService(
         for (id in ids) {
             logger.info { "Deleting observation ${id}" }
         }
+        // ToDo: Delete Image Objects in Object Store
         imageRepository.deleteAllById(ids)
         logger.debug { "Images successfully deleted: ${ids}" }
         logger.debug { "Deleting all permissions for images due to deletion of images ${ids}" }
@@ -113,6 +114,20 @@ class ImageService(
                 ObjectType.IMAGE,
                 it
             )
+        }
+    }
+
+    fun publishImages(ids: Set<String>) {
+        // ToDo: Add Method to Repository to do thsi in one query.
+        ids.parallelStream().forEach {
+            permissionService.grantPublicRead(ObjectType.IMAGE, it)
+        }
+    }
+
+    fun unpublishImages(ids: Set<String>) {
+        // ToDo: Add Method to Repository to do thsi in one query.
+        ids.parallelStream().forEach {
+            permissionService.revokePublicRead(ObjectType.IMAGE, it)
         }
     }
 

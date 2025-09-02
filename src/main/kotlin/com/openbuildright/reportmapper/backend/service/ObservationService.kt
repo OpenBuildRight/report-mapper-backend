@@ -38,7 +38,7 @@ class ObservationService(
             createdTime = now,
             updatedTime = now,
             location = geoLocationModelToPoint(observationModel.location),
-            enabled = true, // Start as enabled
+            published = false,
             imageIds = images.stream().map { it.id }.toList().toSet(),
             reporterId = observationModel.reporterId,
             properties = observationModel.properties,
@@ -95,7 +95,7 @@ class ObservationService(
     /**
      * Soft delete - disable an observation
      */
-    fun disableObservation(id: String): ObservationModel {
+    fun unpublishObservation(id: String): ObservationModel {
         val observationResponse: Optional<ObservationDocument?> = observationRepository.findById(id)
         if (observationResponse.isEmpty) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Observation ${id} not found.")
@@ -103,8 +103,9 @@ class ObservationService(
         val observation: ObservationDocument = observationResponse.get()
         val now: Instant = Instant.now()
         observation.updatedTime = now
-        observation.enabled = false
+        observation.published = false
         val updatedObservation = observationRepository.save(observation)
+        imageService.unpublishImages(observation.imageIds)
         logger.info{ "Observation ${id} disabled." }
         // Revoke public read access when disabled
         permissionService.revokePublicRead(objectType = ObjectType.OBSERVATION, objectId=id)
@@ -114,7 +115,7 @@ class ObservationService(
     /**
      * Re-enable a disabled observation
      */
-    fun enableObservation(id: String): ObservationModel {
+    fun publishObservation(id: String): ObservationModel {
         val observationResponse: Optional<ObservationDocument?> = observationRepository.findById(id)
         if (observationResponse.isEmpty) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Observation ${id} not found.")
@@ -122,22 +123,14 @@ class ObservationService(
         val observation: ObservationDocument = observationResponse.get()
         val now: Instant = Instant.now()
         observation.updatedTime = now
-        observation.enabled = true
+        observation.published = true
         val updatedObservation = observationRepository.save(observation)
-        
-        return updatedObservation.toObservationModel()
-    }
+        permissionService.grantPublicRead(ObjectType.OBSERVATION, id)
+        imageService.publishImages(observation.imageIds)
+        observation.imageIds.parallelStream().forEach {
 
-    /**
-     * Publish an observation (grant public read access)
-     */
-    fun publishObservation(id: String, publishedBy: String): ObservationModel {
-        val observation = getObservation(id)
-        
-        // Grant public read access
-        permissionService.grantPublicRead(ObjectType.OBSERVATION, id, publishedBy)
-        
-        return observation
+        }
+        return updatedObservation.toObservationModel()
     }
 
     /**
@@ -145,7 +138,7 @@ class ObservationService(
      */
     fun getObservationsByUser(username: String): List<ObservationModel> {
         return observationRepository.findByReporterId(username)
-            .filter { it.enabled } // Only return enabled observations
+            .filter { it.published } // Only return enabled observations
             .map { it.toObservationModel() }
     }
 
@@ -161,7 +154,7 @@ class ObservationService(
      * Get all published (enabled) observations
      */
     fun getPublishedObservations(): List<ObservationModel> {
-        return observationRepository.findByEnabledTrue()
+        return observationRepository.findByPublishedTrue()
             .map { it.toObservationModel() }
     }
 

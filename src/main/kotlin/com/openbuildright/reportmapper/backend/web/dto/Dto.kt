@@ -92,7 +92,7 @@ data class ObservationDto(
                 updatedTime = observation.updatedTime,
                 location = GeoLocationDto.fromGeoLocationModel(observation.location),
                 properties = observation.properties,
-                enabled = observation.enabled,
+                enabled = observation.published,
                 imageIds = observation.imageIds,
                 description = observation.description,
                 title = observation.title,

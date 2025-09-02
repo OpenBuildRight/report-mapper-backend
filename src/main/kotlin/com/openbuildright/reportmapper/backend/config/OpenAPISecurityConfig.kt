@@ -1,5 +1,6 @@
 package com.openbuildright.reportmapper.backend.config
 
+import com.openbuildright.reportmapper.backend.security.SystemRole
 import io.swagger.v3.oas.models.OpenAPI
 import org.springframework.context.annotation.Configuration
 import io.swagger.v3.oas.models.Components
@@ -46,12 +47,11 @@ class OpenAPISecurityConfig {
         return OAuthFlow()
             .authorizationUrl(authorizationUrl)
             .scopes(
-                Scopes().addString("read_access", "read data")
-                    .addString("write_access", "modify data")
+                Scopes().addString(SystemRole.ADMIN.name, "Administrator")
             )
     }
 
     companion object {
-        private const val OAUTH_SCHEME_NAME = "my_oAuth_security_schema"
+        private const val OAUTH_SCHEME_NAME = "OAuthSchema"
     }
 }

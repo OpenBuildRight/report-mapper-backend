@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ObservationDocumentRepository : MongoRepository<ObservationDocument, String> {
     fun findByReporterId(reporterId: String): List<ObservationDocument>
-    fun findByEnabledTrue(): List<ObservationDocument>
+    fun findByPublishedTrue(): List<ObservationDocument>
 }
 
 @Repository

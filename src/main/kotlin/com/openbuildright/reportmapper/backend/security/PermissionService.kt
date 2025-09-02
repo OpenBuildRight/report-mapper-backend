@@ -249,7 +249,7 @@ class PermissionService(
     /**
      * Grant public read access to an object
      */
-    fun grantPublicRead(objectType: ObjectType, objectId: String, grantedBy: String): Set<ObjectPermissionModel> {
+    fun grantPublicRead(objectType: ObjectType, objectId: String): Set<ObjectPermissionModel> {
 
         return grantPermissions(
             setOf(

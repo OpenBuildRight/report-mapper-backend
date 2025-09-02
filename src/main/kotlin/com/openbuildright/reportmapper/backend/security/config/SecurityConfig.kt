@@ -39,7 +39,7 @@ class SecurityConfig(
                     "/observation/published"
                     ).permitAll()
                 it.requestMatchers(
-                    "/actuator/**",  // Allow health checks without authentication
+                    "/actuator/**",
                 ).hasAuthority(
                     SystemRole.ADMIN.name
                 )

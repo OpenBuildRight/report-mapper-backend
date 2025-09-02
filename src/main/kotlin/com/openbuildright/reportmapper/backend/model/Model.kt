@@ -1,6 +1,5 @@
 package com.openbuildright.reportmapper.backend.model
 
-import org.springframework.data.annotation.Id
 import java.time.Instant
 
 data class GeoLocationModel(
@@ -25,7 +24,7 @@ data class ObservationModel(
     val updatedTime: Instant,
     val location: GeoLocationModel,
     val properties: Map<String, String>,
-    val enabled: Boolean,
+    val published: Boolean,
     val imageIds: Set<String>,
     val reporterId: String,
     val description: String,

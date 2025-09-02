@@ -78,7 +78,7 @@ class ObservationController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasPermission(#id, 'OBSERVATION', 'DISABLE')")
     fun disableObservation(@PathVariable id: String): ResponseEntity<Map<String, String>> {
-        observationService.disableObservation(id)
+        observationService.unpublishObservation(id)
         return ResponseEntity.ok(mapOf("message" to "Observation disabled successfully"))
     }
 
@@ -87,7 +87,7 @@ class ObservationController(
      */
     @PatchMapping("/{id}/enable")
     fun enableObservation(@PathVariable id: String): ResponseEntity<ObservationDto> {
-        val observation = observationService.enableObservation(id)
+        val observation = observationService.publishObservation(id)
         return ResponseEntity.ok(ObservationDto.fromObservationModel(observation))
     }
 
@@ -101,7 +101,7 @@ class ObservationController(
         authentication: Authentication
     ): ResponseEntity<ObservationDto> {
         logger.info { "User ${authentication.name} attempting to publish observation $id" }
-        val observation = observationService.publishObservation(id, authentication.name)
+        val observation = observationService.publishObservation(id)
         return ResponseEntity.ok(ObservationDto.fromObservationModel(observation))
     }
 
