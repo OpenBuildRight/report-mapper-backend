@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service
 import java.io.Serializable
 
 fun extractScopes(authentication: Authentication?) : Set<String> {
-    val principal : Jwt? = authentication?.principal as Jwt?
-    val scopesClaim: String? = principal?.claims?.get("scope")?.toString()
-    return scopesClaim?.split(" ")?.asSequence()?.filter{ it.isNotBlank() }?.toSet() ?: setOf<String>()
+    return authentication?.authorities?.asSequence()?.map{it.authority.toString()}?.toSet() ?: setOf()
 }
 
 @Service
