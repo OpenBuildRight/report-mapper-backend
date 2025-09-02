@@ -108,7 +108,6 @@ class ObservationController(
      * Get current user's observations
      *
      */
-    // ToDo: AuthorizationForListEndpoints
     @GetMapping("/my-observations")
     fun getMyObservations(authentication: Authentication): List<ObservationDto> {
         return observationService.getObservationsByUser(authentication.name)
@@ -118,11 +117,17 @@ class ObservationController(
     /**
      * Admin-only endpoint to get all observations for admin purposes
      */
-    // ToDo: AuthorizationForListEndpoints
     @GetMapping("/admin/all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAllObservations(authentication: Authentication): List<ObservationDto> {
         logger.info { "Admin ${authentication.name} accessing all observations" }
         return observationService.getAllObservations()
             .map { ObservationDto.fromObservationModel(it) }
+    }
+
+    @GetMapping("/published")
+    @PreAuthorize("preAuthorize()")
+    fun getPublishedObservations(): List<ObservationDto> {
+        return observationService.getPublishedObservations().map{ ObservationDto.fromObservationModel(it) }.toList()
     }
 }
